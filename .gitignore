@@ -1,0 +1,8 @@
+./backup/*.*
+./data/*.*
+./obj/*.*
+./opencv/*.*
+./scripts/*.*
+*.jpg
+*.txt
+*.py
