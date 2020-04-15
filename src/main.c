@@ -13,21 +13,22 @@ int main(int argc, char *argv[])
 {
 	/*加载数据*/
 	times("Loading data...\n");
-	Data train_pos = load_image_data("./face.train");
-	Data valid_pos = load_image_data("./face.validation");
-	Data train_neg = load_image_data("./non-face.train");
-	Data valid_neg = load_image_data("./non-face.validation");
+	Data t_pos_data = load_image_data("./face.train");
+	Data v_pos_data = load_image_data("./face.validation");
+	Data t_neg_data = load_image_data("./non-face.train");
+	Data v_neg_data = load_image_data("./non-face.validation");
 	
-	printf("training face size:%d\n", train_pos.im_num);
-	printf("validation face size:%d\n", valid_pos.im_num);
-	printf("training non-face size:%d\n", train_neg.im_num);
-	printf("validation non-face size:%d\n", valid_neg.im_num);
+	printf("training pos size:%d\n", t_pos_data.im_num);
+	printf("validation pos size:%d\n", v_pos_data.im_num);
+	printf("training neg size:%d\n", t_neg_data.im_num);
+	printf("validation neg size:%d\n", v_neg_data.im_num);
 
 	/*训练模型*/
 	printf("Training begin...\n");
-	Model *model = train_model(train_pos, valid_pos, train_neg, valid_neg);
+	Model *model = attentional_cascade(t_pos_data, v_pos_data, t_neg_data, v_neg_data, 19, 0.00001, 0.5, 0.005);
+	
 
-	//save_model(model, "./backup/test_model.cfg");
+	printf("Training end...\n");
 	
 	//Model *m = load_model("./backup/test_model.cfg");
 

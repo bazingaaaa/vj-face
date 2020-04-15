@@ -10,71 +10,9 @@
 
 
 #define MAX_DEPTH(l) (MIN((10 * l) + 10, 200))
+//#define MAX_DEPTH(l) (1)
 
-/*
-功能：模型训练
-参数：train_pos-训练正样本数据
-	 vali_pos-验证正样本数据
-	 train_neg-训练负样本数据
-	 vali_neg-验证负样本数据
-备注：共需要四组数据
-*/
-Model *train_model(Data train_pos, Data valid_pos, Data train_neg, Data valid_neg)
-{
-	Model *m = (Model*)malloc(sizeof(Model));
-	i32 t_pos_num = train_pos.im_num;
-	i32 v_pos_num = valid_pos.im_num;
-	i32 t_neg_num = t_pos_num;/*第一轮负样本数量为10倍的正样本数量*/
-	i32 v_neg_num = valid_pos.im_num;
-	i32 example_num;
-	i32 feat_num = 0;
-	i32 i;
-
-	/*获取正训练样本*/
-	prepare_pos_examples(train_pos);
-	prepare_pos_examples(valid_pos);
-	Train_example *t_pos_array = make_pos_example(train_pos);
-	printf("make train pos example finish\n");	
-	Train_example *v_pos_array = make_pos_example(valid_pos);
-	printf("make valid pos example finish\n");	
-
-	/*获取初始化负训练样本*/
-	Train_example *t_neg_array = make_neg_example(train_neg, 1, t_neg_num, 24, NULL);
-	Train_example *v_neg_array = make_neg_example(train_neg, 1, v_neg_num, 24, NULL);
-	
-	/*生成特征信息*/
-	Haar_feat *feat_array = make_haar_features(24, &feat_num);
-	printf("make haar features feat_num:%d\n", feat_num);
-
-	Train_example *examples = merge_pos_neg(t_pos_array, t_pos_num, t_neg_array, t_neg_num);
-	example_num = t_pos_num + t_neg_num;
-
-	/*test*/
-	//Stump *stmp = find_best_stump(examples, t_pos_num + t_neg_num, feat_array, feat_num);
-	//printf("type:%d thresh:%f error:%f margin:%f\n", stmp.pFeat->type, stmp.thresh, stmp.error, stmp.margin);
-		
-	/*创建可用于训练的样本并行处理内存空间*/
-	Feat_info **parallel_examples = make_parallel_examples(example_num, feat_num);
-
-	//Stage *s1 = adaboost(parallel_examples, examples, example_num, t_pos_num, t_neg_num, feat_array, feat_num, 2);
-		
-	//Stage *s2 = adaboost(parallel_examples, examples, example_num, t_pos_num, t_neg_num, feat_array, feat_num, 2);
-
-	Model *t = load_model("./backup/test_model.cfg");
-	t->head_stage->shift = 0;
-	t->head_stage->next_stage->shift = 0;
-
-	float rate1 = test_model(t, t_pos_array, v_pos_num);
-	float rate2 = test_model(t, t_neg_array, v_neg_num);
-	
-	printf("rate1:%f rate2:%f\n", rate1, rate2);
-	
-
-	free_parallel_examples(parallel_examples, feat_num);
-
-	return m;	
-}
-
+#define UNIT_DECAY_RATE (0.95)
 
 /*
 功能：模型加载
@@ -155,13 +93,13 @@ i8 save_model(Model *m, const char* path)
 	fwrite(&m->stage_num, sizeof(i32), 1, fp);
 	while(stage_count < m->stage_num)
 	{
-		printf("stage_count:%d stage_num：%d\n", stage_count, m->stage_num);
+		//printf("stage_count:%d stage_num：%d\n", stage_count, m->stage_num);
 		i32 stump_count = 0;
 		Stump *stmp = stage->head_stump;
 		fwrite(stage, sizeof(Stage), 1, fp);
 		while(stump_count < stage->stump_num)
 		{
-			printf("stump_count:%d stump_num:%d\n", stump_count, stage->stump_num);
+			//printf("stump_count:%d stump_num:%d\n", stump_count, stage->stump_num);
 			fwrite(stmp, sizeof(Stump), 1, fp);	
 			stmp = stmp->next_stump;
 			stump_count++;
@@ -245,8 +183,7 @@ i8 model_func(Model *m, image integ)
 功能：训练级联注意力模型
 备注：对应论文An Analysis of the Viola-Jones Face Detection Algorithm中的算法10
 */
-Model *attentional_cascade(Train_example *t_pos, i32 t_pos_num, Train_example *v_pos, i32 v_pos_num,
-		Data t_neg_data, Data v_neg_data, Haar_feat *feat_array, i32 feat_num, float fpr_overall, float fpr_perlayer, float fnr_perlayer)
+Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Data v_neg_data, i32 wnd_size, float fpr_overall, float fpr_perlayer, float fnr_perlayer)
 {
 	Model *model = (Model*)malloc(sizeof(Model));
 	Stage *tail_stage = NULL;
@@ -259,25 +196,42 @@ Model *attentional_cascade(Train_example *t_pos, i32 t_pos_num, Train_example *v
 	float fpr_e, fpr_g;/*分别对应训练集和验证集上的假阳性率*/
 	float fnr_e, fnr_g;/*分别对应训练集和验证集上的假阴性率*/
 	float fpr_r, fnr_r;
+	i32 t_pos_num = t_pos_data.im_num;
+	i32 v_pos_num = v_pos_data.im_num;
 	i32 t_neg_num = t_pos_num;
 	i32 v_neg_num = v_pos_num;
 	i32 s_obesrver[2];/*用于记录tweak是否震荡*/
 	i32 tweak_counter = 0;
 	s_obesrver[0] = 0; s_obesrver[1] = 0;
 	i32 count;
+	i32 feat_num;
+	i32 i;
+	
+
+	/*获取正训练样本*/
+	prepare_pos_examples(t_pos_data);
+	prepare_pos_examples(v_pos_data);
+	Train_example *t_pos = make_pos_example(t_pos_data);
+	printf("make train pos example finish\n");	
+	Train_example *v_pos = make_pos_example(v_pos_data);
+	printf("make valid pos example finish\n");	
+
+	/*生成特征信息*/
+	Haar_feat *feat_array = make_haar_features(wnd_size, &feat_num);
+	printf("make haar features feat_num:%d\n", feat_num);
 
 	/*创建可用于训练的样本并行处理内存空间*/
 	Feat_info **parallel_examples = make_parallel_examples(t_pos_num + t_neg_num, feat_num);/*训练中正样本和负样本数量一致*/	
 
 	/*收集初始的训练和验证所用的负样本*/
-	Train_example *t_neg = make_neg_example(t_neg_data, 1, t_neg_num, 24, NULL);
-	Train_example *v_neg = make_neg_example(v_neg_data, 1, v_neg_num, 24, NULL);
+	Train_example *t_neg = make_neg_example(t_neg_data, 1, t_neg_num, wnd_size, NULL);
+	Train_example *v_neg = make_neg_example(v_neg_data, 1, v_neg_num, wnd_size, NULL);
 	Train_example *examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);
 	example_num = t_pos_num + t_neg_num;/*所有样本*/
-	free(t_neg);
 
 	model->stage_num = 0;
-
+	
+	times("attentional_cascade beg\n");
 	while(fpr > fpr_overall)/*假阳性率还未达标*/
 	{
 		switch(opt_case)
@@ -290,8 +244,18 @@ Model *attentional_cascade(Train_example *t_pos, i32 t_pos_num, Train_example *v
 			case 1:/*训练adaboost*/
 				new_stage = adaboost(parallel_examples, examples, example_num, t_pos_num, t_neg_num, feat_array, feat_num, T_l);
 				model->stage_num++;
-				model->head_stage = new_stage;
-				times("new stage\n");
+				if(tail_stage == NULL)
+				{
+					model->head_stage = new_stage;
+					tail_stage = new_stage;
+				}
+				else
+				{
+					tail_stage->next_stage = new_stage;
+					tail_stage = new_stage;
+				}
+				times("add one stage\n");
+
 			case 2:/*测试带偏移的经验（训练集）和泛化（验证集）假阳性率和假阴性率*/
 				new_stage->shift = s_l;
 				fpr_e = 1 - test_stage(new_stage, t_neg, t_neg_num);
@@ -301,8 +265,13 @@ Model *attentional_cascade(Train_example *t_pos, i32 t_pos_num, Train_example *v
 			default:
 				break;
 		}
-		fpr_r = MAX(fpr_e, fpr_g);
-		fnr_r = MAX(fnr_e, fnr_g);
+		//fpr_r = MAX(fpr_e, fpr_g);
+		fpr_r = (fpr_e + fpr_g) / 2;
+		//fnr_r = MAX(fnr_e, fnr_g);
+		fnr_r = (fnr_e + fnr_g) / 2;
+
+		printf("layer:%d stump_num:%d s_l:%f u:%f\n", l, new_stage->stump_num, s_l, u);
+		printf("training set: fnr:%f fpr:%f\nvalidationset fnr:%f fpr:%f\n", fnr_e, fpr_e, fnr_g, fpr_g);
 		//times();
 
 		if(fpr_r <= fpr_perlayer && fnr_r <= fnr_perlayer)
@@ -316,7 +285,7 @@ Model *attentional_cascade(Train_example *t_pos, i32 t_pos_num, Train_example *v
 			tweak_counter++;
 			if(s_obesrver[0] + s_obesrver[1] == 0)/*非单调*/
 			{
-				u = u / 2;
+				u = u * UNIT_DECAY_RATE;
 				s_l = s_l - u;
 				s_obesrver[tweak_counter % 2] = -1;
 				tweak_counter++;
@@ -331,7 +300,7 @@ Model *attentional_cascade(Train_example *t_pos, i32 t_pos_num, Train_example *v
 			tweak_counter++;
 			if(s_obesrver[0] + s_obesrver[1] == 0)/*非单调*/
 			{
-				u = u / 2;
+				u = u * UNIT_DECAY_RATE;
 				s_l = s_l + u;
 				s_obesrver[tweak_counter % 2] = 1;
 				tweak_counter++;
@@ -341,49 +310,106 @@ Model *attentional_cascade(Train_example *t_pos, i32 t_pos_num, Train_example *v
 		}
 		else
 		{
-			if(T_l > MAX_DEPTH(l))/*深度达到上限*/
+			if(T_l >= MAX_DEPTH(l))/*深度达到上限*/
 			{
 				s_l = -1;
 				while(1 - fnr_r < 0.99)
 				{
+					s_l = s_l + u;
 					new_stage->shift = s_l;
 					fpr_e = 1 - test_stage(new_stage, t_neg, t_neg_num);
 					fpr_g = 1 - test_stage(new_stage, v_neg, v_neg_num);
 					fnr_e = 1 - test_stage(new_stage, t_pos, t_pos_num);
 					fnr_g = 1 - test_stage(new_stage, v_pos, v_pos_num);
-					fpr_r = MAX(fpr_e, fpr_g);
-					fnr_r = MAX(fnr_e, fnr_g);
+					//fpr_r = MAX(fpr_e, fpr_g);
+					fpr_r = (fpr_e + fpr_g) / 2;
+					//fnr_r = MAX(fnr_e, fnr_g);
+					fnr_r = (fnr_e + fnr_g) / 2;
 				}
 				fpr = fpr * fpr_r;
+				printf("fnr:%f fpr:%f\n", fnr_r, fpr_r);
 			}
 			else
 			{
+				times("add one stump\n");
+				T_l++;
 				add_stump_2_stage(new_stage, parallel_examples, examples, example_num, feat_array, feat_num);
+				s_l = 0;
 				opt_case = 2;
+				u = 0.01;
 				continue;
 			}
 		}
 		opt_case = 0;
 
+
+		if(l % 3 == 0)
+		{
+			char buf[100];
+			i32 len = sprintf(buf, "./backup/attentional_cascade_%d.cfg", l);
+			buf[len] = 0;
+			printf("save model layer:%d fpr:%f\n", l, fpr);
+			save_model(model, buf);
+		}
+	
+		printf("layer:%d stump_num:%d s_l:%f u:%f\n", l, new_stage->stump_num, s_l, u);
+		printf("replenish examples beg\n");
+		
+		/*重新收集负样本的训练集和验证集*/
+		for(i = 0; i < t_neg_num; i++)
+		{
+			free_image(t_neg[i].integ);
+		}
+		for(i = 0; i < v_neg_num; i++)
+		{
+			free_image(v_neg[i].integ);
+		}
+		free(t_neg);
+		free(v_neg);
+		free(examples);
+		t_neg = make_neg_example(t_neg_data, 0, t_neg_num, wnd_size, model);
+		v_neg = make_neg_example(v_neg_data, 0, v_neg_num, wnd_size, model);
+		examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);
+		example_num = t_neg_num + t_pos_num;
+		
+
 		/*补充正样本和负样本*/
 		/*对训练集和验证集进行预测*/
-		make_predictions(model, examples, example_num);
-		make_predictions(model, v_neg, v_neg_num);
-		count = screen_examples(t_neg, t_neg_num);
-		Train_example *supply_neg = make_neg_example(t_neg_data, 0, count, 24, model);
-		memcpy(&t_neg[t_neg_num - count], supply_neg, sizeof(Train_example) * count);
-		free(supply_neg);
-		free(examples);
-		examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);
+		//make_predictions(model, t_neg, t_neg_num);
+		//make_predictions(model, v_neg, v_neg_num);
+		//count = screen_examples(t_neg, t_neg_num);
+		//printf("count:%d\n", count);
+		//memcpy(&t_neg[t_neg_num - count], supply_neg, sizeof(Train_example) * count);
+		//free(supply_neg);
+		//free(examples);
+		//examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);
 		/*移除假阴性样本并补充*/
-		count = screen_examples(v_neg, v_neg_num);
-		supply_neg = make_neg_example(v_neg_data, 0, count, 24, model);
-		memcpy(&v_neg[t_neg_num - count], supply_neg, sizeof(Train_example) * count);
-		free(supply_neg);
-	}
+		//count = screen_examples(v_neg, v_neg_num);
+		//supply_neg = make_neg_example(v_neg_data, 0, count, 24, model);
+		//memcpy(&v_neg[t_neg_num - count], supply_neg, sizeof(Train_example) * count);
+		//free(supply_neg);
 
+		times("replenish examples end\n");
+	}
+	times("attentional_cascade end\n");
+	
 	/*释放并行训练内存空间*/
 	free_parallel_examples(parallel_examples, feat_num);
+	
+	/*释放样本信息*/
+	free(t_pos);
+	free(v_pos);
+	free(t_neg);
+	free(v_neg);
+	free(examples);
+
+	/*释放图片数据*/
+	free_image_data(t_pos_data);
+	free_image_data(t_neg_data);
+	free_image_data(v_pos_data);
+	free_image_data(v_neg_data);
+	
+	save_model(model, "./backup/attentional_cascade.cfg");
 
 	return model;
 }
@@ -437,6 +463,7 @@ i32 screen_examples(Train_example *examples, i32 example_num)
 	{
 		if(examples[i].predict_label == -1 && examples[i].label == -1)/*真阴性样本*/
 		{
+			free_image(examples[i].integ);
 			free_image(examples[i].integ);
 			memcpy(&examples[i], &examples[example_num - 1], sizeof(Train_example));
 			example_num--;

@@ -20,7 +20,8 @@ list *make_list()
 /*
 功能:从链表中弹出元素
 */
-void *list_pop(list *l){
+void *list_pop(list *l)
+{
     if(!l->back) return 0;
     node *b = l->back;
     void *val = b->val;
@@ -42,10 +43,13 @@ void list_insert(list *l, void *val)
 	newNode->val = val;
 	newNode->next = 0;
 
-	if(!l->back){
+	if(!l->back)
+	{
 		l->front = newNode;
 		newNode->prev = 0;
-	}else{
+	}
+	else
+	{
 		l->back->next = newNode;
 		newNode->prev = l->back;
 	}
@@ -60,7 +64,8 @@ void list_insert(list *l, void *val)
 void free_node(node *n)
 {
 	node *next;
-	while(n) {
+	while(n) 
+	{
 		next = n->next;
 		free(n);
 		n = next;
@@ -84,7 +89,8 @@ void free_list(list *l)
 void free_list_contents(list *l)
 {
 	node *n = l->front;
-	while(n){
+	while(n)
+	{
 		free(n->val);
 		n = n->next;
 	}
@@ -99,7 +105,8 @@ void **list_to_array(list *l)
     void **a = (void**)calloc(l->size, sizeof(void*));
     int count = 0;
     node *n = l->front;
-    while(n){
+    while(n)
+    {
         a[count++] = n->val;
         n = n->next;
     }

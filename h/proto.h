@@ -24,12 +24,13 @@ void add_stump_2_stage(Stage *s, Feat_info** parallel_examples, Train_example *e
 
 
 /*model.h*/
-Model *train_model(Data train_pos, Data valid_pos, Data train_neg, Data valid_neg);
 i8 save_model(Model *m, const char* path);
 Model *load_model(const char* path);
 float test_model(Model *m, Train_example *examples, i32 example_num);
 void make_predictions(Model *m, Train_example *examples, i32 example_num);
 i32 screen_examples(Train_example *examples, i32 example_num);
+i8 model_func(Model *m, image integ);
+Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Data v_neg_data, i32 wnd_size, float fpr_overall, float fpr_perlayer, float fnr_perlayer);
 
 
 
@@ -46,6 +47,7 @@ Train_example *merge_pos_neg(Train_example *pos, i32 pos_num, Train_example *neg
 void prepare_pos_examples(Data data);
 Feat_info **make_parallel_examples(i32 example_num, i32 feat_num);
 void free_parallel_examples(Feat_info **parrel_examples, i32 feat_num);
+void free_image_data(Data data);
 
 
 /*utils.h*/

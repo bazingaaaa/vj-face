@@ -241,18 +241,18 @@ Stage *adaboost(Feat_info** parallel_examples, Train_example *examples, i32 exam
 	{
 		if(examples[i].label == 1)
 		{
-			examples[i].weight = 1.0 / pos_num;
+			examples[i].weight = 1.0 / pos_num / 2;
 		}
 		else
 		{
-			examples[i].weight = 1.0 / neg_num;
+			examples[i].weight = 1.0 / neg_num / 2;
 		}
 	}
 
 	for(t = 0; t < depth; t++)
 	{
 		Stump *stmp = find_best_stump(parallel_examples, examples, example_num, feat_array, feat_num);
-		times("add one stump\n");
+		//times("add one stump\n");
 		err_t = stmp->error;
 
 		/*增加一个决策桩*/
@@ -276,11 +276,11 @@ Stage *adaboost(Feat_info** parallel_examples, Train_example *examples, i32 exam
 		a_t = 1.0 / 2 * log((1 - err_t) / err_t);
 		stmp->weight = a_t;
 
-		printf("t:%d err_t:%f\n", t, err_t);
-		printf("type:%d i:%d j:%d w:%d h:%d\n", stmp->feat.type, stmp->feat.i, stmp->feat.j, stmp->feat.w, stmp->feat.h);
+		//printf("t:%d err_t:%f\n", t, err_t);
+		//printf("type:%d i:%d j:%d w:%d h:%d\n", stmp->feat.type, stmp->feat.i, stmp->feat.j, stmp->feat.w, stmp->feat.h);
 		
-		float rate = test_stump(stmp, examples, example_num);
-		printf("rate%f\n", rate);
+		//float rate = test_stump(stmp, examples, example_num);
+		//printf("rate:%f\n", rate);
 
 		/*更新权重值*/
     	#pragma omp parallel for
@@ -325,7 +325,7 @@ i8 stump_func(Stump *stmp, image integ, i32 train_flag)
 	{
 		feat_val = calc_haar_feat_val(integ, &stmp->feat);
 	}
-	return stmp->sign * feat_val > 0 ? 1 : -1;
+	return stmp->sign * (feat_val > stmp->thresh ? 1 : -1);
 }
 
 
@@ -340,7 +340,7 @@ i8 stage_func(Stage *s, image integ, i32 train_flag)
 
 	while(stmp != NULL)
 	{
-		weight_rslt += (stmp->weight * stump_func(stmp, integ, train_flag));
+		weight_rslt += (stmp->weight * (stump_func(stmp, integ, train_flag) + shift));
 		stmp = stmp->next_stump;
 	}
 
@@ -379,7 +379,6 @@ void add_stump_2_stage(Stage *s, Feat_info** parallel_examples, Train_example *e
 	i8 predict_label;
 
 	Stump *stmp = find_best_stump(parallel_examples, examples, example_num, feat_array, feat_num);
-	times("add one stump\n");
 	err_t = stmp->error;
 
 	/*增加一个决策桩*/
@@ -388,11 +387,11 @@ void add_stump_2_stage(Stage *s, Feat_info** parallel_examples, Train_example *e
 	a_t = 1.0 / 2 * log((1 - err_t) / err_t);
 	stmp->weight = a_t;
 
-	printf("t:%d err_t:%f\n", t, err_t);
-	printf("type:%d i:%d j:%d w:%d h:%d\n", stmp->feat.type, stmp->feat.i, stmp->feat.j, stmp->feat.w, stmp->feat.h);
+	//printf("t:%d err_t:%f\n", t, err_t);
+	//printf("type:%d i:%d j:%d w:%d h:%d\n", stmp->feat.type, stmp->feat.i, stmp->feat.j, stmp->feat.w, stmp->feat.h);
 	
-	float rate = test_stump(stmp, examples, example_num);
-	printf("rate%f\n", rate);
+	//float rate = test_stump(stmp, examples, example_num);
+	//printf("rate%f\n", rate);
 
 	/*更新权重值*/
 	#pragma omp parallel for
@@ -409,6 +408,7 @@ void add_stump_2_stage(Stage *s, Feat_info** parallel_examples, Train_example *e
 		}
 	}
 
+	s->tail_stump->next_stump = stmp;
 	s->tail_stump = stmp;
 	stmp->next_stump = NULL;
 }

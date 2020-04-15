@@ -145,49 +145,46 @@ Train_example * make_pos_example(Data data)
      init_flag-是否是第一次获取样本
      example_num-需要的样本数量
      wnd_size-样本图像大小
-     pModel-级联模型
+     m-级联模型,用于筛选假阳性样本
 备注：初始时随机取出指定数量的负样本数据，在训练过程中需要根据模型挑选出指定数量的假阳性样本
 */
-Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 wnd_size, Model *pModel)
+Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 wnd_size, Model *m)
 {
     i32 count = 0;
     i32 im_size = data.im_num;
     float mean;
     float var;
+    i32 i, j, k;
+    image cropped, candidate;
     
     Train_example *examples = (Train_example*)malloc(sizeof(Train_example) * example_num);
     //srand(1);
-    if(1 == init_flag)/*初始时负样本获取，直接选取若干个wnd_size大小的窗口*/
+    while(count < example_num)
     {
-        while(count < example_num)
-        {
-            i32 im_idx = rand() % im_size;
-            i32 w = data.im_array[im_idx].w;
-            i32 h = data.im_array[im_idx].h;
-            if(w < wnd_size || h < wnd_size)/*图片太小*/
-            {   
-                continue;
-            }
-            i32 dx = rand()%(w - wnd_size);
-            i32 dy = rand()%(h - wnd_size);
-            image cropped = crop_image_extend(data.im_array[im_idx], dx, dy, wnd_size, wnd_size);
-            mean = calc_im_mean(cropped);
-            var = calc_im_var(cropped, mean);
-            if(var < 1)/*方差太小，数据对模型没有帮助*/
-            {
-                free_image(cropped);
-                continue;
-            }
-            examples[count].integ = normalize_integral_image(cropped, mean, var);
-            examples[count].label = -1;
-                
-            free_image(cropped);
-            count++;
+        i32 im_idx = rand() % im_size;
+        i32 w = data.im_array[im_idx].w;
+        i32 h = data.im_array[im_idx].h;
+        if(w < wnd_size || h < wnd_size)/*图片太小*/
+        {   
+            continue;
         }
-    }
-    else/*训练过程中负样本获取*/
-    {
-
+        i32 dx = rand()%(w - wnd_size);
+        i32 dy = rand()%(h - wnd_size);
+        cropped = crop_image_extend(data.im_array[im_idx], dx, dy, wnd_size, wnd_size);
+        mean = calc_im_mean(cropped);
+        var = calc_im_var(cropped, mean);
+        candidate = normalize_integral_image(cropped, mean, var);
+        free_image(cropped);
+        if(var < 1 || (init_flag == 0 && 1 != model_func(m, candidate)))/*方差太小，数据对模型没有帮助*/
+        {
+            //free_image(cropped);
+            free_image(candidate);
+            continue;
+        }
+        examples[count].integ = candidate;
+        examples[count].label = -1;
+            
+        count++;
     }
     return examples;
 }
@@ -234,4 +231,18 @@ void free_parallel_examples(Feat_info **parrel_examples, i32 feat_num)
         free(parrel_examples[i]);
     }
     free(parrel_examples);
+}
+
+
+/*
+功能：释放图片数据
+*/
+void free_image_data(Data data)
+{
+    i32 i;
+
+    for(i = 0; i < data.im_num; i++)
+    {
+        free_image(data.im_array[i]);
+    }
 }
