@@ -383,17 +383,12 @@ void add_stump_2_stage(Stage *s, Feat_info** parallel_examples, Train_example *e
 
 	/*增加一个决策桩*/
 	s->stump_num = s->stump_num + 1;
-
+	
+	/*计算该决策桩权重*/
 	a_t = 1.0 / 2 * log((1 - err_t) / err_t);
 	stmp->weight = a_t;
 
-	//printf("t:%d err_t:%f\n", t, err_t);
-	//printf("type:%d i:%d j:%d w:%d h:%d\n", stmp->feat.type, stmp->feat.i, stmp->feat.j, stmp->feat.w, stmp->feat.h);
-	
-	//float rate = test_stump(stmp, examples, example_num);
-	//printf("rate%f\n", rate);
-
-	/*更新权重值*/
+	/*更新所有样本的权重值*/
 	#pragma omp parallel for
 	for(i = 0; i < example_num; i++)
 	{

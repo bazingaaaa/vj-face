@@ -18,6 +18,14 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 
 #define MAG_V 0xCC
 
+#define TWOPI 6.2831853
+
+#define SET_RANGE(a, min, max) {\
+                                    if(a<min)\
+                                        a=min;\
+                                    if(a>max)\
+                                    a=max;\
+                                }
 
 /*目前仅实现一种特征模式*/
 typedef enum haar_feature_mode

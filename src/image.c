@@ -228,3 +228,167 @@ image crop_image_extend(image im, int dx, int dy, int w, int h)
     }
     return cropped;
 }
+
+
+/*
+功能：二维高斯函数
+*/
+float gaissian2d(int x, int y, float sigma)
+{
+    return 1 / (TWOPI * sigma * sigma) * exp(-(x * x + y * y)/(2 * sigma * sigma)); 
+}
+
+
+/*
+功能：生成高斯滤波器
+*/
+image make_gaussian_filter(float sigma)
+{
+    int filter_size = ceil(sigma * 6);
+    if(filter_size % 2 == 0)
+        filter_size++;
+    int i, j;
+    int center_x = filter_size / 2;
+    int center_y = filter_size / 2;
+    image im = make_image(filter_size, filter_size, 1);
+    for(i = 0;i < filter_size;i++)
+    {
+        for(j = 0;j < filter_size;j++)
+        {
+            im.data[j * filter_size + i] = gaissian2d(i - center_x, j -center_y, sigma);
+        }
+    }
+    return im;
+}
+
+
+/*
+功能：对灰度图像进行卷进
+备注：处理图像边界时用最邻近的元素填充
+*/
+image convolve_image(image im, image filter)
+{
+    assert(filter.c == 1);
+    int w_i = im.w;
+    int h_i = im.h;
+    int w_f = filter.w;
+    int h_f = filter.h;
+    int w_f_dist = w_f / 2;
+    int h_f_dist = h_f / 2;
+    int i, j;
+    int m, n;
+
+    image out = make_image(w_i, h_i, 1);
+    for(i = 0;i < w_i;i++)
+    {
+        for(j = 0;j < h_i;j++)
+        {
+            float val = 0;
+            for(m = 0;m < w_f;m++)
+            {
+                for(n = 0;n < h_f;n++)
+                {
+                    int x = i - w_f_dist + m;
+                    int y = j - h_f_dist + n;
+                    SET_RANGE(x, 0, w_i -1);
+                    SET_RANGE(y, 0, h_i -1);
+                    val += (filter.data[n * w_f + m] * im.data[y * w_i + x]);
+                }
+            }
+            out.data[j * w_i + i] = val;
+        }
+    }
+    return out;
+}
+
+
+/*
+功能：对灰度图像进行高斯滤波
+*/
+image gaussian_filter_image(image im, float sigma)
+{
+    image gaussian_filter = make_gaussian_filter(sigma);
+    image out = convolve_image(im, gaussian_filter);
+    free_image(gaussian_filter);
+    return out;
+}
+
+
+/*
+功能：将输入图像降采样只指定大小
+备注：对应论文An Analysis of the Viola-Jones Face Detection Algorithm中的算法8 
+     非in-place 原图像不会释放
+*/
+image down_sample(image im, i32 wnd_size)
+{
+    i32 i, j;
+    i32 e = im.w;
+    float i_new, j_new;
+    i32 i_new_min, i_new_max, j_new_min, j_new_max;
+    float pixel_val;
+    assert(e > wnd_size);
+    float sigma = 0.6 * sqrt((e * 1.0 / wnd_size) * (e * 1.0 / wnd_size) - 1);/*论文中给出的公式*/
+    image im_smooth = gaussian_filter_image(im, sigma);
+    free_image(im);
+    image out = make_image(im.w, im.h, 1);
+    for(i = 0; i < wnd_size; i++)
+    {
+        for(j = 0; j < wnd_size; j++)
+        {
+            i_new = (e - 1) * 1.0 / (wnd_size + 1) * (i + 1);
+            j_new = (e - 1) * 1.0 / (wnd_size + 1) * (j + 1);
+            i_new_max = MIN(NEAREST_INTEGER(i_new) + 1, e - 1);
+            i_new_min = MAX(NEAREST_INTEGER(i_new), 0);
+            j_new_max = MIN(NEAREST_INTEGER(j_new) + 1, e - 1);
+            j_new_min = MAX(NEAREST_INTEGER(j_new), 0);
+            pixel_val = 1.0 / 4 * (get_pixel_extend(im_smooth, i_new_max, j_new_max)
+                                 + get_pixel_extend(im_smooth, i_new_min, j_new_max)
+                                 + get_pixel_extend(im_smooth, i_new_min, j_new_min)
+                                 + get_pixel_extend(im_smooth, i_new_max, j_new_min));
+            set_pixel_extend(out, j, i, pixel_val);
+        }
+    }
+}
+
+
+/*
+功能：在被检测图像上画出检测窗（in-place）
+备注：x为纵轴，y为横轴
+*/
+void draw_box(image im, i32 x, i32 y, i32 w, i32 h, float r, float g, float b)
+{
+    i32 i;
+    i32 x1 = y, x2 = y + w - 1;
+    i32 y1 = x, y2 = x + h - 1;
+
+    if(x1 < 0) x1 = 0;
+    if(x1 >= im.w) x1 = im.w-1;
+    if(x2 < 0) x2 = 0;
+    if(x2 >= im.w) x2 = im.w-1;
+
+    if(y1 < 0) y1 = 0;
+    if(y1 >= im.h) y1 = im.h-1;
+    if(y2 < 0) y2 = 0;
+    if(y2 >= im.h) y2 = im.h-1;
+
+    for(i = x1; i <= x2; ++i){
+        im.data[i + y1*im.w + 0*im.w*im.h] = r;
+        im.data[i + y2*im.w + 0*im.w*im.h] = r;
+
+        im.data[i + y1*im.w + 1*im.w*im.h] = g;
+        im.data[i + y2*im.w + 1*im.w*im.h] = g;
+
+        im.data[i + y1*im.w + 2*im.w*im.h] = b;
+        im.data[i + y2*im.w + 2*im.w*im.h] = b;
+    }
+    for(i = y1; i <= y2; ++i){
+        im.data[x1 + i*im.w + 0*im.w*im.h] = r;
+        im.data[x2 + i*im.w + 0*im.w*im.h] = r;
+
+        im.data[x1 + i*im.w + 1*im.w*im.h] = g;
+        im.data[x2 + i*im.w + 1*im.w*im.h] = g;
+
+        im.data[x1 + i*im.w + 2*im.w*im.h] = b;
+        im.data[x2 + i*im.w + 2*im.w*im.h] = b;
+    }
+}

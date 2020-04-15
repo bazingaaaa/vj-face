@@ -25,12 +25,10 @@ int main(int argc, char *argv[])
 
 	/*训练模型*/
 	printf("Training begin...\n");
-	Model *model = attentional_cascade(t_pos_data, v_pos_data, t_neg_data, v_neg_data, 19, 0.00001, 0.5, 0.005);
-	
-
+	Model *model = attentional_cascade(t_pos_data, v_pos_data, t_neg_data, v_neg_data, 24, 1e-7, 0.5, 0.005);
 	printf("Training end...\n");
-	
-	//Model *m = load_model("./backup/test_model.cfg");
 
+	save_model(model, "./backup/attentional_cascade_final.cfg");
+	
 	return 0;
 }

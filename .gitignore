@@ -8,3 +8,5 @@
 *.py
 *.png
 *.cfg
+*.DS_Store
+*.o

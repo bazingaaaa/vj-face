@@ -60,6 +60,8 @@ float calc_im_sum(image integ, i32 iBeg, i32 iEnd, i32 jBeg, i32 jEnd);
 image crop_image(image im, int dx, int dy, int w, int h);
 image crop_image_extend(image im, int dx, int dy, int w, int h);
 image normalize_integral_image(image im, float mean, float var);
+image down_sample(image im, i32 wnd_size);
+void draw_box(image im, i32 x, i32 y, i32 w, i32 h, float r, float g, float b);
 
 
 #endif

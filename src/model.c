@@ -12,7 +12,7 @@
 #define MAX_DEPTH(l) (MIN((10 * l) + 10, 200))
 //#define MAX_DEPTH(l) (1)
 
-#define UNIT_DECAY_RATE (0.95)
+#define UNIT_DECAY_RATE (0.8)
 
 /*
 功能：模型加载
@@ -216,18 +216,18 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 	Train_example *v_pos = make_pos_example(v_pos_data);
 	printf("make valid pos example finish\n");	
 
+	/*收集初始的训练和验证所用的负样本*/
+	Train_example *t_neg = make_neg_example(t_neg_data, 1, t_neg_num, wnd_size, NULL);
+	Train_example *v_neg = make_neg_example(v_neg_data, 1, v_neg_num, wnd_size, NULL);
+	Train_example *examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);
+	example_num = t_pos_num + t_neg_num;/*所有样本*/
+
 	/*生成特征信息*/
 	Haar_feat *feat_array = make_haar_features(wnd_size, &feat_num);
 	printf("make haar features feat_num:%d\n", feat_num);
 
 	/*创建可用于训练的样本并行处理内存空间*/
 	Feat_info **parallel_examples = make_parallel_examples(t_pos_num + t_neg_num, feat_num);/*训练中正样本和负样本数量一致*/	
-
-	/*收集初始的训练和验证所用的负样本*/
-	Train_example *t_neg = make_neg_example(t_neg_data, 1, t_neg_num, wnd_size, NULL);
-	Train_example *v_neg = make_neg_example(v_neg_data, 1, v_neg_num, wnd_size, NULL);
-	Train_example *examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);
-	example_num = t_pos_num + t_neg_num;/*所有样本*/
 
 	model->stage_num = 0;
 	
@@ -254,14 +254,13 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 					tail_stage->next_stage = new_stage;
 					tail_stage = new_stage;
 				}
-				times("add one stage\n");
 
 			case 2:/*测试带偏移的经验（训练集）和泛化（验证集）假阳性率和假阴性率*/
 				new_stage->shift = s_l;
-				fpr_e = 1 - test_stage(new_stage, t_neg, t_neg_num);
-				fpr_g = 1 - test_stage(new_stage, v_neg, v_neg_num);
-				fnr_e = 1 - test_stage(new_stage, t_pos, t_pos_num);
-				fnr_g = 1 - test_stage(new_stage, v_pos, v_pos_num);
+				fpr_e = 1 - test_stage(new_stage, t_neg, t_neg_num);/*训练集的假阳性率*/
+				fpr_g = 1 - test_stage(new_stage, v_neg, v_neg_num);/*验证集的假阳性率*/
+				fnr_e = 1 - test_stage(new_stage, t_pos, t_pos_num);/*训练集的假阴性率*/
+				fnr_g = 1 - test_stage(new_stage, v_pos, v_pos_num);/*验证集的假阴性率*/
 			default:
 				break;
 		}
@@ -272,7 +271,6 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 
 		printf("layer:%d stump_num:%d s_l:%f u:%f\n", l, new_stage->stump_num, s_l, u);
 		printf("training set: fnr:%f fpr:%f\nvalidationset fnr:%f fpr:%f\n", fnr_e, fpr_e, fnr_g, fpr_g);
-		//times();
 
 		if(fpr_r <= fpr_perlayer && fnr_r <= fnr_perlayer)
 		{
@@ -341,9 +339,12 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 			}
 		}
 		opt_case = 0;
+		
+		printf("fpr:%f fpr_r:%f fnr_r:%f\n", fpr, fpr_r, fnr_r);
+		printf("add one stage\n");
 
 
-		if(l % 3 == 0)
+		if(l % 2 == 0)/*每两层保存一次模型*/
 		{
 			char buf[100];
 			i32 len = sprintf(buf, "./backup/attentional_cascade_%d.cfg", l);
@@ -353,7 +354,7 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 		}
 	
 		printf("layer:%d stump_num:%d s_l:%f u:%f\n", l, new_stage->stump_num, s_l, u);
-		printf("replenish examples beg\n");
+		times("replenish examples beg\n");
 		
 		/*重新收集负样本的训练集和验证集*/
 		for(i = 0; i < t_neg_num; i++)
@@ -371,23 +372,6 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 		v_neg = make_neg_example(v_neg_data, 0, v_neg_num, wnd_size, model);
 		examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);
 		example_num = t_neg_num + t_pos_num;
-		
-
-		/*补充正样本和负样本*/
-		/*对训练集和验证集进行预测*/
-		//make_predictions(model, t_neg, t_neg_num);
-		//make_predictions(model, v_neg, v_neg_num);
-		//count = screen_examples(t_neg, t_neg_num);
-		//printf("count:%d\n", count);
-		//memcpy(&t_neg[t_neg_num - count], supply_neg, sizeof(Train_example) * count);
-		//free(supply_neg);
-		//free(examples);
-		//examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);
-		/*移除假阴性样本并补充*/
-		//count = screen_examples(v_neg, v_neg_num);
-		//supply_neg = make_neg_example(v_neg_data, 0, count, 24, model);
-		//memcpy(&v_neg[t_neg_num - count], supply_neg, sizeof(Train_example) * count);
-		//free(supply_neg);
 
 		times("replenish examples end\n");
 	}
@@ -408,8 +392,6 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 	free_image_data(t_neg_data);
 	free_image_data(v_pos_data);
 	free_image_data(v_neg_data);
-	
-	save_model(model, "./backup/attentional_cascade.cfg");
 
 	return model;
 }
@@ -473,3 +455,26 @@ i32 screen_examples(Train_example *examples, i32 example_num)
 	return count;
 }
 
+
+/*
+功能：扫描整个图像，筛选出
+*/
+Sub_wnd *scan_image(Model *model, image im, i32 *wnd_num)
+{
+
+}
+
+
+/*
+功能：检测后处理，对检测窗进行进一步筛选，剔除掉虚警和重复检测
+*/
+
+
+
+/*
+功能：释放模型
+*/
+void free_model(Model *model)
+{
+
+}
