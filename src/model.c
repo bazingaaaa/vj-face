@@ -112,48 +112,6 @@ i8 save_model(Model *m, const char* path)
 
 
 /*
-功能：收集训练集和验证集中的假阳性样本，用于下一轮的训练
-参数：data-样本图像数据
-	 examples-用于收集假阳性样本的数组
-	 example_num-收集样本的数量
-备注：对应论文An Analysis of the Viola-Jones Face Detection Algorithm中的算法7
-	 出于内存的限制，实现上有些改动
-*/
-void collect_fp_example(Data data, Train_example *examples, i32 example_num, i32 wnd_size, i32 scale_mutiplier)
-{
-	i32 i, j, k, l, m;
-	i32 scan_wnd;
-	i32 count = 0;
-	float mean, var;
-	image im_wnd, integ;
-
-	while(1)
-	{
-		scan_wnd = wnd_size * pow(scale_mutiplier, i);
-		for(i = 0; i < data.im_num; i++)
-		{
-			/*扫描整个图像*/
-			for(j = 0; j <= data.im_array[i].w - scan_wnd; j++)
-			{
-				for(k = 0; k <= data.im_array[i].h - scan_wnd; k++)
-				{
-					im_wnd = crop_image_extend(data.im_array[i], j, k, scan_wnd, scan_wnd);
-					mean = calc_im_mean(im_wnd);
-					var = calc_im_var(im_wnd, mean);
-					if(var < 1)
-					{
-						continue;
-					}
-					integ = normalize_integral_image(im_wnd, mean, var);
-				}
-			}
-		}
-		i++;
-	}
-}
-
-
-/*
 功能：模型推断函数
 */
 i8 model_func(Model *m, image integ)
@@ -214,9 +172,9 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 	printf("make valid pos example finish\n");	
 
 	/*收集初始的训练和验证所用的负样本*/
-	Train_example *t_neg = make_neg_example(t_neg_data, 1, t_neg_num, wnd_size, NULL, 0);
-	Train_example *v_neg = make_neg_example(v_neg_data, 1, v_neg_num, wnd_size, NULL, 0);
-	Train_example *examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);
+	Train_example *t_neg = make_neg_example(t_neg_data, 1, t_neg_num, wnd_size, NULL, 0, 0, 0);
+	Train_example *v_neg = make_neg_example(v_neg_data, 1, v_neg_num, wnd_size, NULL, 0, 0, 0);
+	Train_example *examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);/*把正负样本合到一个数组中去*/
 	example_num = t_pos_num + t_neg_num;/*所有样本*/
 
 	/*生成特征信息*/
@@ -340,7 +298,6 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 		printf("fpr:%f fpr_r:%f fnr_r:%f\n", fpr, fpr_r, fnr_r);
 		printf("add one stage\n");
 
-
 		if(l % 1 == 0)/*每两层保存一次模型*/
 		{
 			char buf[100];
@@ -365,8 +322,8 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 		free(t_neg);
 		free(v_neg);
 		free(examples);
-		t_neg = make_neg_example(t_neg_data, 0, t_neg_num, wnd_size, model, fpr);
-		v_neg = make_neg_example(v_neg_data, 0, v_neg_num, wnd_size, model, fpr);
+		t_neg = make_neg_example(t_neg_data, 0, t_neg_num, wnd_size, model, fpr, 1.5, 12);
+		v_neg = make_neg_example(v_neg_data, 0, v_neg_num, wnd_size, model, fpr, 1.5, 12);
 		examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);
 		example_num = t_neg_num + t_pos_num;
 
@@ -425,21 +382,20 @@ void make_predictions(Model *m, Train_example *examples, i32 example_num)
 	{
 		float mean, var;
 		image cropped = crop_image_extend(examples[i].src_img, examples[i].y, examples[i].x, examples[i].size, examples[i].size);
-        mean = calc_im_mean(cropped);
-        var = calc_im_var(cropped, mean);
-        if(var < 1)
-       	{
-       		free_image(cropped);
+	    mean = calc_im_mean(cropped);
+	    var = calc_im_var(cropped, mean);
+	    if(var < 1)
+	   	{
+   			free_image(cropped);
 			examples[i].predict_label = -1;
-       	}
-       	else
-       	{
-       		//scale_image(examples[0].src_img, 1.0/255);
-			//show_image(examples[0].src_img, "test", 5000000);
+   		}
+   		else
+   		{
 			examples[i].integ = normalize_integral_image(cropped, mean, var);
 			examples[i].predict_label = model_func(m, examples[i].integ);
-       		free_image(cropped);
-       	}
+   			free_image(cropped);
+   			free_image(examples[i].integ);
+   		}
 	}
 }
 
@@ -618,3 +574,70 @@ i32 detect(image im, Model *model)
 }
 
 
+/*
+功能：寻求假正样本
+备注：对应论文An Analysis of the Viola-Jones Face Detection Algorithm中的算法7
+	 出于内存的限制，实现上有些改动
+*/
+Train_example *scratch_for_FP(Model *model, image im, i32 *wnd_num, i32 wnd_size, float scale_size, i32 step_size)
+{
+	i32 i;
+
+	/*生成图像中所有子窗*/
+	Train_example *examples = get_sub_wnd(im, wnd_num, wnd_size, scale_size, step_size);
+
+	//scale_image(examples[0].src_img, 1.0/255);
+	//show_image(examples[0].src_img, "test", 5000000);
+
+	#pragma omp parallel for
+	for(i = 0; i < *wnd_num; i++)
+	{
+		float mean, var;
+		image cropped = crop_image_extend(examples[i].src_img, examples[i].y, examples[i].x, examples[i].size, examples[i].size);
+	    mean = calc_im_mean(cropped);
+	    var = calc_im_var(cropped, mean);
+	    if(var < 1)
+	    {
+	    	free_image(cropped);
+			examples[i].predict_label = -1;
+	    }
+	    else
+   		{
+			image integ = normalize_integral_image(cropped, mean, var);
+			if(1 == model_func(model, integ))
+			{
+				if(examples[i].size > wnd_size)
+				{
+					image cropped_small = down_sample(cropped, wnd_size);
+					free_image(integ);
+					integ = make_intergral_image(cropped_small);
+					free_image(cropped_small);
+					if(1 == model_func(model, integ))
+					{
+						examples[i].predict_label = 1;
+						examples[i].integ = integ;
+					}
+					else
+					{
+						examples[i].predict_label = -1;
+						free_image(integ);
+					}
+				}
+				else/*examples[i].size == wnd_size*/
+				{
+					examples[i].predict_label = 1;
+					examples[i].integ = integ;
+				}
+			}
+			else
+			{
+				free_image(integ);
+				examples[i].predict_label = -1;
+			}
+
+   			free_image(cropped);
+   		}
+	}
+
+	return examples;
+}

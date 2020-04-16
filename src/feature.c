@@ -99,7 +99,12 @@ float calc_featE_val(image integ, i32 i, i32 j, i32 w, i32 h)
 float calc_haar_feat_val(image integ, Haar_feat *pFeat)
 {
 	float ret = 0;
-	assert(pFeat->srcWndSize != 0 && pFeat->srcWndSize <= integ.w);
+	if(!(pFeat->srcWndSize != 0 && pFeat->srcWndSize <= integ.w))
+	{
+		printf("pFeat->srcWndSize:%d\n w:%d h:%d\n", pFeat->srcWndSize, integ.w, integ.h);
+		assert(0);
+	}
+	//assert(pFeat->srcWndSize != 0 && pFeat->srcWndSize <= integ.w);
 	i32 i = pFeat->i, j = pFeat->j, w = pFeat->w, h = pFeat->h, a;
 	i32 e = integ.w;
 	i32 s = pFeat->srcWndSize;

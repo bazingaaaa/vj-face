@@ -319,6 +319,7 @@ i8 stump_func(Stump *stmp, image integ, i32 train_flag)
 	{
 		feat_val = calc_haar_feat_val(integ, &stmp->feat);
 	}
+
 	return stmp->sign * (feat_val > stmp->thresh ? 1 : -1);
 }
 

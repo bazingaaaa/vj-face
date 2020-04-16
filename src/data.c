@@ -149,7 +149,7 @@ Train_example * make_pos_example(Data data)
 备注：初始时随机取出指定数量的负样本数据，在训练过程中需要根据模型挑选出指定数量的假阳性样本
      当fpr（假阳性率）极小时，假阳性样本很难获取，此时采用遍历所有图片的方式寻找
 */
-Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 wnd_size, Model *m, float fpr)
+Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 wnd_size, Model *m, float fpr, float scale_size, i32 step_size)
 {
     i32 count = 0;
     i32 im_size = data.im_num;
@@ -157,11 +157,12 @@ Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 w
     float var;
     i32 i, j, k;
     image cropped, candidate;
-    static i32 im_idx_recorder;/*记录上一次抽取样本的图片索引*/
+    static i32 im_idx_recorder = 0;/*记录上一次抽取样本的图片索引*/
 
     Train_example *examples = (Train_example*)malloc(sizeof(Train_example) * example_num);
     //srand(1);
-    if(init_flag == 0 || fpr > 10e-4)
+    //if(init_flag == 1 || fpr > 10e-4)
+    if(init_flag == 1)
     {
         while(count < example_num)
         {
@@ -191,9 +192,38 @@ Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 w
             count++;
         }
     }
-    else
+    else/*假阳性率极低*/
     {
+        while(count < example_num)
+        {
+            if(im_idx_recorder >= data.im_num)
+            {
+                im_idx_recorder = 0;
+            }
+            image im = data.im_array[im_idx_recorder];
+            i32 wnd_num;
+            Train_example *candidate = scratch_for_FP(m, im, &wnd_num, wnd_size, scale_size, step_size);
+            for(i = 0; i < wnd_num; i++)
+            {
+                if(candidate[i].predict_label == 1)
+                {
+                    if(count >= example_num)
+                    {
+                        free_image(candidate[i].integ);
+                    }
+                    else
+                    {
+                        assert(candidate[i].integ.w >= wnd_size);
+                        examples[count].integ = candidate[i].integ;
+                        examples[count].label = -1;
+                        count++;
+                    }
+                }
+            }
+            free(candidate);
 
+            im_idx_recorder++;
+        }
     }
    
     return examples;

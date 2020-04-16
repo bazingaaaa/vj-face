@@ -15,7 +15,7 @@
 image make_intergral_image(image im)
 {
     i32 i, j, k;
-    image integ = make_image(im.w, im.h, im.c);
+    image integ = make_image(im.w, im.h, 1);
 
     for(i = 0; i < im.w; i++)
     {
@@ -318,7 +318,7 @@ image gaussian_filter_image(image im, float sigma)
 /*
 功能：将输入图像降采样只指定大小
 备注：对应论文An Analysis of the Viola-Jones Face Detection Algorithm中的算法8 
-     非in-place 原图像不会释放
+     非in-place 原图像被释放
 */
 image down_sample(image im, i32 wnd_size)
 {
@@ -330,8 +330,7 @@ image down_sample(image im, i32 wnd_size)
     assert(e > wnd_size);
     float sigma = 0.6 * sqrt((e * 1.0 / wnd_size) * (e * 1.0 / wnd_size) - 1);/*论文中给出的公式*/
     image im_smooth = gaussian_filter_image(im, sigma);
-    free_image(im);
-    image out = make_image(im.w, im.h, 1);
+    image out = make_image(wnd_size, wnd_size, 1);
     for(i = 0; i < wnd_size; i++)
     {
         for(j = 0; j < wnd_size; j++)
@@ -346,9 +345,11 @@ image down_sample(image im, i32 wnd_size)
                                  + get_pixel_extend(im_smooth, i_new_min, j_new_max)
                                  + get_pixel_extend(im_smooth, i_new_min, j_new_min)
                                  + get_pixel_extend(im_smooth, i_new_max, j_new_min));
-            set_pixel_extend(out, j, i, pixel_val);
+            set_pixel_extend(out, i, j, pixel_val);
         }
     }
+    free_image(im_smooth);
+    return out;
 }
 
 

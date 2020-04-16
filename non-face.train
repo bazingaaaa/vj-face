@@ -123,7 +123,6 @@
 ./data/train/non-face/xeso0949i.png
 ./data/train/non-face/mcgillmerry0106.png
 ./data/train/non-face/disaster256_020.png
-./data/train/non-face/xfingerprint108_1.png
 ./data/train/non-face/mcgillpippin0219.png
 ./data/train/non-face/disaster256_034.png
 ./data/train/non-face/aUPenn058.png
@@ -152,7 +151,6 @@
 ./data/train/non-face/mcgillpippin_Peel001.png
 ./data/train/non-face/anim0868.png
 ./data/train/non-face/ship0026.png
-./data/train/non-face/xfingerprint108_3.png
 ./data/train/non-face/disaster260_008.png
 ./data/train/non-face/mcgillmerry_mtl07_044.png
 ./data/train/non-face/disaster256_022.png
@@ -189,7 +187,6 @@
 ./data/train/non-face/azria102100.png
 ./data/train/non-face/expl1192.png
 ./data/train/non-face/xeso9526a.png
-./data/train/non-face/xfingerprint102_8.png
 ./data/train/non-face/facade0059.png
 ./data/train/non-face/mcgillmerry_winter0018.png
 ./data/train/non-face/wea00038.png
@@ -320,7 +317,6 @@
 ./data/train/non-face/disaster256_037.png
 ./data/train/non-face/mcgillmerry_mtl07_045.png
 ./data/train/non-face/disaster260_009.png
-./data/train/non-face/xfingerprint108_2.png
 ./data/train/non-face/anim0869.png
 ./data/train/non-face/mcgillpippin_Peel014.png
 ./data/train/non-face/line2511.png
@@ -347,7 +343,6 @@
 ./data/train/non-face/aUPenn088.png
 ./data/train/non-face/mcgillpippin_park0002.png
 ./data/train/non-face/xeso0949n.png
-./data/train/non-face/xfingerprint108_6.png
 ./data/train/non-face/mcgillmerry_mtl07_041.png
 ./data/train/non-face/disaster256_027.png
 ./data/train/non-face/mcgillmerry0101.png
@@ -505,7 +500,6 @@
 ./data/train/non-face/azria104005.png
 ./data/train/non-face/mcgillpippin_park0017.png
 ./data/train/non-face/aUPenn076.png
-./data/train/non-face/xfingerprint106_8.png
 ./data/train/non-face/xeso9842c.png
 ./data/train/non-face/mcgillmerry_mexico0094.png
 ./data/train/non-face/mcgillMerry_0067_Lasalle.png
@@ -548,8 +542,6 @@
 ./data/train/non-face/facade0103.png
 ./data/train/non-face/facade0117.png
 ./data/train/non-face/line0665.png
-./data/train/non-face/xfingerprint104_8.png
-./data/train/non-face/aa14.png
 ./data/train/non-face/sanc0127.png
 ./data/train/non-face/mcgillmerry_italy0128.png
 ./data/train/non-face/mcgillpippin_city30.png
@@ -650,7 +642,6 @@
 ./data/train/non-face/disaster256_025.png
 ./data/train/non-face/azria108600.png
 ./data/train/non-face/mcgillmerry_mtl07_043.png
-./data/train/non-face/xfingerprint108_4.png
 ./data/train/non-face/xeso0949l.png
 ./data/train/non-face/expl1220.png
 ./data/train/non-face/mcgillpippin0208.png
@@ -706,8 +697,6 @@
 ./data/train/non-face/azria110000.png
 ./data/train/non-face/disaster47_960.png
 ./data/train/non-face/wea01965.png
-./data/train/non-face/xfingerprint103_8.png
-./data/train/non-face/xfingerprint110_2.png
 ./data/train/non-face/xeso0824b.png
 ./data/train/non-face/xeso9920a.png
 ./data/train/non-face/line2028.png
@@ -719,7 +708,6 @@
 ./data/train/non-face/mcgillmerry_italy0172.png
 ./data/train/non-face/mcgillmerry_mexico0231.png
 ./data/train/non-face/mcgillmerry_mexico0225.png
-./data/train/non-face/anectie7.png
 ./data/train/non-face/mcgillpippin_ParcSafari029.png
 ./data/train/non-face/mcgillpippin_ParcSafari001.png
 ./data/train/non-face/azria114702.png
@@ -751,7 +739,6 @@
 ./data/train/non-face/mcgillMerry_0033_Lasalle.png
 ./data/train/non-face/mcgillmerry_mexico0147.png
 ./data/train/non-face/mcgillpippin_UniStrt024.png
-./data/train/non-face/xfingerprint109_3.png
 ./data/train/non-face/azria100401.png
 ./data/train/non-face/mcgillpippin0256a.png
 ./data/train/non-face/azria104101.png
@@ -803,7 +790,6 @@
 ./data/train/non-face/mcgillpippin_ParcSafari014.png
 ./data/train/non-face/mcgillpippin_city57.png
 ./data/train/non-face/azria114703.png
-./data/train/non-face/anectie6.png
 ./data/train/non-face/mcgillmerry_mexico0224.png
 ./data/train/non-face/expl1044.png
 ./data/train/non-face/mcgillMerry_0001_Lasalle.png
@@ -812,10 +798,8 @@
 ./data/train/non-face/facade0164.png
 ./data/train/non-face/xeso1042d.png
 ./data/train/non-face/wea00111.png
-./data/train/non-face/xfingerprint110_3.png
 ./data/train/non-face/xeso0330b.png
 ./data/train/non-face/nerr0587.png
-./data/train/non-face/amouth12.png
 ./data/train/non-face/wea01964.png
 ./data/train/non-face/mcgillmerry_mtl07_019.png
 ./data/train/non-face/mcgillpippin0246.png
@@ -867,8 +851,6 @@
 ./data/train/non-face/mcgillpippin0250.png
 ./data/train/non-face/azria114503.png
 ./data/train/non-face/line2003.png
-./data/train/non-face/xfingerprint110_1.png
-./data/train/non-face/amouth10.png
 ./data/train/non-face/expl1091.png
 ./data/train/non-face/corp1473.png
 ./data/train/non-face/xeso1311c.png
@@ -880,7 +862,6 @@
 ./data/train/non-face/disaster26_526.png
 ./data/train/non-face/xeso1042f.png
 ./data/train/non-face/facade0166.png
-./data/train/non-face/anectie4.png
 ./data/train/non-face/azria108300.png
 ./data/train/non-face/mcgillpippin_city69.png
 ./data/train/non-face/mcgillmerry_mexico0232.png
@@ -935,7 +916,6 @@
 ./data/train/non-face/xeso1219a.png
 ./data/train/non-face/azria106700.png
 ./data/train/non-face/corp1937.png
-./data/train/non-face/xfingerprint109_1.png
 ./data/train/non-face/mcgillpippin_UniStrt026.png
 ./data/train/non-face/xeso0613c.png
 ./data/train/non-face/sanc0209.png
@@ -978,7 +958,6 @@
 ./data/train/non-face/mcgillmerry_mexico0233.png
 ./data/train/non-face/expl1053.png
 ./data/train/non-face/facade0198.png
-./data/train/non-face/anectie5.png
 ./data/train/non-face/mcgillmerry_mexico0227.png
 ./data/train/non-face/wea00112.png
 ./data/train/non-face/xeso1042g.png
@@ -989,7 +968,6 @@
 ./data/train/non-face/line0629.png
 ./data/train/non-face/facade0173.png
 ./data/train/non-face/expl1090.png
-./data/train/non-face/amouth11.png
 ./data/train/non-face/line2002.png
 ./data/train/non-face/mcgillpippin0251.png
 ./data/train/non-face/expl0615.png
@@ -1009,7 +987,6 @@
 ./data/train/non-face/mcgillmerry0199.png
 ./data/train/non-face/aUPenn010.png
 ./data/train/non-face/xeso0310c.png
-./data/train/non-face/xfingerprint101_8.png
 ./data/train/non-face/anim0836.png
 ./data/train/non-face/anim0822.png
 ./data/train/non-face/xeso9845a.png
@@ -1045,7 +1022,6 @@
 ./data/train/non-face/mcgillpippin0094.png
 ./data/train/non-face/facade0163.png
 ./data/train/non-face/xeso1042c.png
-./data/train/non-face/xfingerprint110_4.png
 ./data/train/non-face/xeso1107c.png
 ./data/train/non-face/xeso9954i.png
 ./data/train/non-face/xeso1208dc.png
@@ -1061,7 +1037,6 @@
 ./data/train/non-face/azria106300.png
 ./data/train/non-face/mcgillpippin_city50.png
 ./data/train/non-face/facade0188.png
-./data/train/non-face/amouth6.png
 ./data/train/non-face/expl1057.png
 ./data/train/non-face/wea00076.png
 ./data/train/non-face/corp2745.png
@@ -1073,7 +1048,6 @@
 ./data/train/non-face/corp2751.png
 ./data/train/non-face/xeso0426l.png
 ./data/train/non-face/mcgillmerry_toys0004.png
-./data/train/non-face/xfingerprint105_8.png
 ./data/train/non-face/xeso9805a.png
 ./data/train/non-face/mcgillpippin_win07_017.png
 ./data/train/non-face/disaster259_002.png
@@ -1084,7 +1058,6 @@
 ./data/train/non-face/mcgillMerry_0061_Lasalle.png
 ./data/train/non-face/facade0201.png
 ./data/train/non-face/mcgillmerry_mexico0196.png
-./data/train/non-face/disaster258_007.png
 ./data/train/non-face/mcgillmerry_mexico0182.png
 ./data/train/non-face/azria106704.png
 ./data/train/non-face/azria114300.png
@@ -1096,12 +1069,10 @@
 ./data/train/non-face/mcgillMerry_0011_Lasalle.png
 ./data/train/non-face/mcgillmerry_mexico0155.png
 ./data/train/non-face/mcgillmerry_mexico0141.png
-./data/train/non-face/xfingerprint109_5.png
 ./data/train/non-face/mcgillpippin_UniStrt022.png
 ./data/train/non-face/expl0981.png
 ./data/train/non-face/mcgillmerry_mexico0140.png
 ./data/train/non-face/expl0980.png
-./data/train/non-face/xfingerprint109_4.png
 ./data/train/non-face/mcgillmerry_mexico0154.png
 ./data/train/non-face/expl0002.png
 ./data/train/non-face/azria112002.png
@@ -1134,7 +1105,6 @@
 ./data/train/non-face/corp2744.png
 ./data/train/non-face/line1320.png
 ./data/train/non-face/line1446.png
-./data/train/non-face/amouth7.png
 ./data/train/non-face/mcgillmerry_mexico0236.png
 ./data/train/non-face/expl1056.png
 ./data/train/non-face/mcgillmerry_mexico0222.png
@@ -1152,7 +1122,6 @@
 ./data/train/non-face/azria112406.png
 ./data/train/non-face/xeso9721g.png
 ./data/train/non-face/xeso9954h.png
-./data/train/non-face/xfingerprint110_5.png
 ./data/train/non-face/facade0162.png
 ./data/train/non-face/xeso1042b.png
 ./data/train/non-face/mcgillpippin0095.png
@@ -1213,7 +1182,6 @@
 ./data/train/non-face/azria113901.png
 ./data/train/non-face/wea00101.png
 ./data/train/non-face/facade0148.png
-./data/train/non-face/xfingerprint110_7.png
 ./data/train/non-face/xeso9954j.png
 ./data/train/non-face/sanc0811.png
 ./data/train/non-face/mcgillmerry_mexico0208.png
@@ -1224,7 +1192,6 @@
 ./data/train/non-face/sanc0805.png
 ./data/train/non-face/expl1054.png
 ./data/train/non-face/mcgillpippin_ParcSafari038.png
-./data/train/non-face/amouth5.png
 ./data/train/non-face/mcgillMerry_0046_Lasalle.png
 ./data/train/non-face/aa8.png
 ./data/train/non-face/mcgillmerry_mexico0220.png
@@ -1261,18 +1228,15 @@
 ./data/train/non-face/azria116500.png
 ./data/train/non-face/disaster49_1030.png
 ./data/train/non-face/azria112000.png
-./data/train/non-face/xfingerprint109_6.png
 ./data/train/non-face/expl0982.png
 ./data/train/non-face/mcgillmerry_mexico0156.png
 ./data/train/non-face/mcgillMERRY0014.png
 ./data/train/non-face/mcgillpippin_UniStrt020.png
-./data/train/non-face/xfingerprint109_7.png
 ./data/train/non-face/mcgillpippin_UniStrt008.png
 ./data/train/non-face/azria116501.png
 ./data/train/non-face/mvey0355.png
 ./data/train/non-face/azria112001.png
 ./data/train/non-face/disaster49_1031.png
-./data/train/non-face/xfingerprint107_8.png
 ./data/train/non-face/xeso9825a.png
 ./data/train/non-face/expl0940.png
 ./data/train/non-face/xeso0921b.png
@@ -1294,7 +1258,6 @@
 ./data/train/non-face/wea00060.png
 ./data/train/non-face/mcgillMerry_0004_Lasalle.png
 ./data/train/non-face/line1451.png
-./data/train/non-face/aa9.png
 ./data/train/non-face/mcgillpippin_ParcSafari039.png
 ./data/train/non-face/azria100001.png
 ./data/train/non-face/mcgillpippin_ParcSafari011.png
@@ -1305,7 +1268,6 @@
 ./data/train/non-face/sanc0810.png
 ./data/train/non-face/mcgillpippin_ParcSafari005.png
 ./data/train/non-face/facade0149.png
-./data/train/non-face/xfingerprint110_6.png
 ./data/train/non-face/fly00224.png
 ./data/train/non-face/xeso0716a.png
 ./data/train/non-face/azria113900.png
@@ -1351,7 +1313,6 @@
 ./data/train/non-face/mcgillpippin_Peel054.png
 ./data/train/non-face/xeso0934c.png
 ./data/train/non-face/expl0839.png
-./data/train/non-face/xfingerprint101_3.png
 ./data/train/non-face/disaster5_120.png
 ./data/train/non-face/xeso0739a.png
 ./data/train/non-face/mcgillmerry_mtl07_005.png
@@ -1373,7 +1334,6 @@
 ./data/train/non-face/facade0144.png
 ./data/train/non-face/mcgillMerry_0041_Lasalle.png
 ./data/train/non-face/line1500.png
-./data/train/non-face/xfingerprint103_1.png
 ./data/train/non-face/xeso9923d.png
 ./data/train/non-face/facade0150.png
 ./data/train/non-face/azria111101.png
@@ -1394,10 +1354,8 @@
 ./data/train/non-face/facade0193.png
 ./data/train/non-face/mcgillpippin0064.png
 ./data/train/non-face/mcgillpippin_ParcSafari034.png
-./data/train/non-face/amouth9.png
 ./data/train/non-face/wea00079.png
 ./data/train/non-face/disaster262_004.png
-./data/train/non-face/xfingerprint105_7.png
 ./data/train/non-face/xeso0902a.png
 ./data/train/non-face/wea00045.png
 ./data/train/non-face/disaster259_019.png
@@ -1422,7 +1380,6 @@
 ./data/train/non-face/line2357.png
 ./data/train/non-face/xeso9915f.png
 ./data/train/non-face/azria108901.png
-./data/train/non-face/xfingerprint107_5.png
 ./data/train/non-face/mcgillpippin_city2.png
 ./data/train/non-face/xeso1217a.png
 ./data/train/non-face/corp2560.png
@@ -1437,7 +1394,6 @@
 ./data/train/non-face/azria103100.png
 ./data/train/non-face/ship0106.png
 ./data/train/non-face/mcgillmerry_mexico0198.png
-./data/train/non-face/xfingerprint107_4.png
 ./data/train/non-face/azria108900.png
 ./data/train/non-face/corp2213.png
 ./data/train/non-face/line2356.png
@@ -1460,7 +1416,6 @@
 ./data/train/non-face/xeso9934a.png
 ./data/train/non-face/mcgillpippin_jtalon0068.png
 ./data/train/non-face/disaster262_005.png
-./data/train/non-face/xfingerprint105_6.png
 ./data/train/non-face/disaster259_018.png
 ./data/train/non-face/wea00044.png
 ./data/train/non-face/corp2039.png
@@ -1535,10 +1490,8 @@
 ./data/train/non-face/xeso8702a.png
 ./data/train/non-face/xeso0627a.png
 ./data/train/non-face/facade0153.png
-./data/train/non-face/xfingerprint103_2.png
 ./data/train/non-face/line1265.png
 ./data/train/non-face/xeso1036a.png
-./data/train/non-face/xfingerprint110_8.png
 ./data/train/non-face/facade0147.png
 ./data/train/non-face/xeso9922c.png
 ./data/train/non-face/azria113701.png
@@ -1555,7 +1508,6 @@
 ./data/train/non-face/corp2749.png
 ./data/train/non-face/mcgillpippin0018a.png
 ./data/train/non-face/wea00046.png
-./data/train/non-face/xfingerprint105_4.png
 ./data/train/non-face/disaster262_007.png
 ./data/train/non-face/facade0033.png
 ./data/train/non-face/mcgillMerry_0066_Lasalle.png
@@ -1585,13 +1537,11 @@
 ./data/train/non-face/mcgillpippin_UniStrt006.png
 ./data/train/non-face/azria101701.png
 ./data/train/non-face/mcgillmerry_mexico0158.png
-./data/train/non-face/xfingerprint109_8.png
 ./data/train/non-face/expl0754.png
 ./data/train/non-face/mcgillpippin_UniStrt007.png
 ./data/train/non-face/azria105200.png
 ./data/train/non-face/azria101700.png
 ./data/train/non-face/mcgillpippin_UniStrt013.png
-./data/train/non-face/xfingerprint107_7.png
 ./data/train/non-face/xeso9915d.png
 ./data/train/non-face/xeso0534a.png
 ./data/train/non-face/azria110802.png
@@ -1607,7 +1557,6 @@
 ./data/train/non-face/azria103301.png
 ./data/train/non-face/wea00047.png
 ./data/train/non-face/mcgillmerry_toys0009.png
-./data/train/non-face/xfingerprint105_5.png
 ./data/train/non-face/xeso9934b.png
 ./data/train/non-face/wea00053.png
 ./data/train/non-face/corp2748.png
@@ -1629,7 +1578,6 @@
 ./data/train/non-face/xeso9922b.png
 ./data/train/non-face/facade0146.png
 ./data/train/non-face/facade0152.png
-./data/train/non-face/xfingerprint103_3.png
 ./data/train/non-face/xeso1104b.png
 ./data/train/non-face/azria102802.png
 ./data/train/non-face/xeso9920j.png
@@ -1647,14 +1595,12 @@
 ./data/train/non-face/xeso-hq-aerial-fotag-07-07.png
 ./data/train/non-face/azria113502.png
 ./data/train/non-face/mcgillpippin0258.png
-./data/train/non-face/xfingerprint101_1.png
 ./data/train/non-face/mcgillpippin_Peel042.png
 ./data/train/non-face/anim0817.png
 ./data/train/non-face/sanc0412.png
 ./data/train/non-face/xeso9003h.png
 ./data/train/non-face/anim0803.png
 ./data/train/non-face/aUPenn025.png
-./data/train/non-face/xfingerprint101_5.png
 ./data/train/non-face/xeso1017b.png
 ./data/train/non-face/mcgillpippin_Peel052.png
 ./data/train/non-face/aUPenn009.png
@@ -1681,7 +1627,6 @@
 ./data/train/non-face/line2594.png
 ./data/train/non-face/azria103701.png
 ./data/train/non-face/mcgillMerry_0013_Lasalle.png
-./data/train/non-face/xfingerprint103_7.png
 ./data/train/non-face/xeso9923b.png
 ./data/train/non-face/facade0142.png
 ./data/train/non-face/mcgillpippinshadow0014.png
@@ -1694,7 +1639,6 @@
 ./data/train/non-face/mcgillpippin_ParcSafari032.png
 ./data/train/non-face/mcgillpippin_ParcSafari026.png
 ./data/train/non-face/nerr0238.png
-./data/train/non-face/anectie8.png
 ./data/train/non-face/aa2.png
 ./data/train/non-face/mcgillpippin_city59.png
 ./data/train/non-face/expl1062.png
@@ -1706,7 +1650,6 @@
 ./data/train/non-face/xeso1020d.png
 ./data/train/non-face/wea00057.png
 ./data/train/non-face/facade0036.png
-./data/train/non-face/xfingerprint105_1.png
 ./data/train/non-face/wea00043.png
 ./data/train/non-face/corp2758.png
 ./data/train/non-face/xeso1304c.png
@@ -1719,7 +1662,6 @@
 ./data/train/non-face/azria109600.png
 ./data/train/non-face/azria111701.png
 ./data/train/non-face/mcgillpippin_city4.png
-./data/train/non-face/xfingerprint107_3.png
 ./data/train/non-face/sanc0210.png
 ./data/train/non-face/azria106902.png
 ./data/train/non-face/disaster258_026.png
@@ -1737,7 +1679,6 @@
 ./data/train/non-face/sanc0205.png
 ./data/train/non-face/expl0962.png
 ./data/train/non-face/sanc0211.png
-./data/train/non-face/xfingerprint107_2.png
 ./data/train/non-face/mcgillpippin_city5.png
 ./data/train/non-face/azria103304.png
 ./data/train/non-face/azria111700.png
@@ -1764,7 +1705,6 @@
 ./data/train/non-face/mcgillpippin_ParcSafari027.png
 ./data/train/non-face/aa3.png
 ./data/train/non-face/mcgillpippin0263a.png
-./data/train/non-face/anectie9.png
 ./data/train/non-face/mcgillpippin_city70.png
 ./data/train/non-face/mcgillpippin_city64.png
 ./data/train/non-face/mcgillpippin_ParcSafari033.png
@@ -1779,7 +1719,6 @@
 ./data/train/non-face/sanc0601.png
 ./data/train/non-face/xeso9920o.png
 ./data/train/non-face/facade0143.png
-./data/train/non-face/xfingerprint103_6.png
 ./data/train/non-face/facade0157.png
 ./data/train/non-face/xeso9923c.png
 ./data/train/non-face/line1513.png
@@ -1806,7 +1745,6 @@
 ./data/train/non-face/aUPenn008.png
 ./data/train/non-face/mcgillpippin_Peel053.png
 ./data/train/non-face/xeso9903a.png
-./data/train/non-face/xfingerprint101_4.png
 ./data/train/non-face/mcgillpippin_Peel051.png
 ./data/train/non-face/expl0828.png
 ./data/train/non-face/xeso0606a.png
@@ -1836,7 +1774,6 @@
 ./data/train/non-face/facade0141.png
 ./data/train/non-face/xeso1040a.png
 ./data/train/non-face/facade0155.png
-./data/train/non-face/xfingerprint103_4.png
 ./data/train/non-face/wea00120.png
 ./data/train/non-face/wea00108.png
 ./data/train/non-face/azria114901.png
@@ -1858,7 +1795,6 @@
 ./data/train/non-face/expl1061.png
 ./data/train/non-face/line1317.png
 ./data/train/non-face/wea00040.png
-./data/train/non-face/xfingerprint105_2.png
 ./data/train/non-face/disaster262_001.png
 ./data/train/non-face/facade0035.png
 ./data/train/non-face/xeso0902d.png
@@ -1914,7 +1850,6 @@
 ./data/train/non-face/mcgillmerry_mexico0189.png
 ./data/train/non-face/expl0949.png
 ./data/train/non-face/xeso0923c.png
-./data/train/non-face/xfingerprint107_1.png
 ./data/train/non-face/expl0785.png
 ./data/train/non-face/xeso9915b.png
 ./data/train/non-face/mcgillpippin_jamaica0258.png
@@ -1955,7 +1890,6 @@
 ./data/train/non-face/facade0154.png
 ./data/train/non-face/wea00121.png
 ./data/train/non-face/mcgillMerry_0006_Lasalle.png
-./data/train/non-face/xfingerprint103_5.png
 ./data/train/non-face/line1262.png
 ./data/train/non-face/xeso9922d.png
 ./data/train/non-face/facade0140.png
@@ -1978,7 +1912,6 @@
 ./data/train/non-face/mcgillmerry0196.png
 ./data/train/non-face/sanc0414.png
 ./data/train/non-face/xeso9846b.png
-./data/train/non-face/xfingerprint101_7.png
 ./data/train/non-face/xeso9903b.png
 ./data/train/non-face/mcgillpippin_Peel050.png
 ./data/train/non-face/line1060.png
@@ -2024,7 +1957,6 @@
 ./data/train/non-face/xeso9924c.png
 ./data/train/non-face/corp2107.png
 ./data/train/non-face/facade0127.png
-./data/train/non-face/xfingerprint104_4.png
 ./data/train/non-face/facade0133.png
 ./data/train/non-face/line1211.png
 ./data/train/non-face/mcgillpippin_city28.png
@@ -2044,7 +1976,6 @@
 ./data/train/non-face/xeso1114c.png
 ./data/train/non-face/mcgillmerry_winter0006.png
 ./data/train/non-face/disaster51_1093.png
-./data/train/non-face/xfingerprint102_2.png
 ./data/train/non-face/wea00026.png
 ./data/train/non-face/facade0053.png
 ./data/train/non-face/line1403.png
@@ -2112,7 +2043,6 @@
 ./data/train/non-face/mcgillmerry_winter0013.png
 ./data/train/non-face/wea00033.png
 ./data/train/non-face/expl0293.png
-./data/train/non-face/xfingerprint102_3.png
 ./data/train/non-face/disaster51_1092.png
 ./data/train/non-face/mcgillmerry_winter0007.png
 ./data/train/non-face/facade0052.png
@@ -2128,7 +2058,6 @@
 ./data/train/non-face/azria103201.png
 ./data/train/non-face/mcgillpippin_city29.png
 ./data/train/non-face/azria107701.png
-./data/train/non-face/xfingerprint104_5.png
 ./data/train/non-face/xeso0436a.png
 ./data/train/non-face/line1210.png
 ./data/train/non-face/xeso0437e.png
@@ -2143,7 +2072,6 @@
 ./data/train/non-face/expl0898.png
 ./data/train/non-face/disaster260_017.png
 ./data/train/non-face/mcgillpippin0210.png
-./data/train/non-face/xfingerprint108_8.png
 ./data/train/non-face/mcgillpippin_park0024.png
 ./data/train/non-face/disaster256_029.png
 ./data/train/non-face/disaster25_102.png
@@ -2158,7 +2086,6 @@
 ./data/train/non-face/expl1210.png
 ./data/train/non-face/mcgillmerry_mexico0070.png
 ./data/train/non-face/xeso0416c.png
-./data/train/non-face/xfingerprint106_7.png
 ./data/train/non-face/aUPenn079.png
 ./data/train/non-face/xesoipp-site.png
 ./data/train/non-face/xeso0524a.png
@@ -2201,7 +2128,6 @@
 ./data/train/non-face/xeso1315a.png
 ./data/train/non-face/sanc0114.png
 ./data/train/non-face/facade0130.png
-./data/train/non-face/xfingerprint104_7.png
 ./data/train/non-face/sanc0128.png
 ./data/train/non-face/corp2104.png
 ./data/train/non-face/facade0124.png
@@ -2227,7 +2153,6 @@
 ./data/train/non-face/facade0044.png
 ./data/train/non-face/facade0050.png
 ./data/train/non-face/mcgillmerry_winter0005.png
-./data/train/non-face/xfingerprint102_1.png
 ./data/train/non-face/wea00025.png
 ./data/train/non-face/azria115501.png
 ./data/train/non-face/line1399.png
@@ -2313,7 +2238,6 @@
 ./data/train/non-face/xeso9924a.png
 ./data/train/non-face/xeso0437f.png
 ./data/train/non-face/facade0131.png
-./data/train/non-face/xfingerprint104_6.png
 ./data/train/non-face/sanc0115.png
 ./data/train/non-face/facade0119.png
 ./data/train/non-face/xeso9532a.png
@@ -2343,7 +2267,6 @@
 ./data/train/non-face/mcgillpippin_Peel035.png
 ./data/train/non-face/mcgillpippin_Mex07_027.png
 ./data/train/non-face/azria108800.png
-./data/train/non-face/xfingerprint106_4.png
 ./data/train/non-face/mcgillpippin_Peel021.png
 ./data/train/non-face/mcgillpippin_Mex07_033.png
 ./data/train/non-face/azria110901.png
@@ -2377,7 +2300,6 @@
 ./data/train/non-face/mcgillmerry0134.png
 ./data/train/non-face/mcgillmerry_mexico0077.png
 ./data/train/non-face/azria111400.png
-./data/train/non-face/xfingerprint104_2.png
 ./data/train/non-face/facade0135.png
 ./data/train/non-face/xeso0437b.png
 ./data/train/non-face/xeso9924e.png
@@ -2399,7 +2321,6 @@
 ./data/train/non-face/mcgillmerry_winter0014.png
 ./data/train/non-face/disaster51_1081.png
 ./data/train/non-face/xeso0641a.png
-./data/train/non-face/xfingerprint102_4.png
 ./data/train/non-face/wea00020.png
 ./data/train/non-face/xeso1230b.png
 ./data/train/non-face/facade0055.png
@@ -2473,7 +2394,6 @@
 ./data/train/non-face/mcgillmerry_winter0029.png
 ./data/train/non-face/wea00021.png
 ./data/train/non-face/xeso1027b.png
-./data/train/non-face/xfingerprint102_5.png
 ./data/train/non-face/mcgillmerry_winter0001.png
 ./data/train/non-face/facade0054.png
 ./data/train/non-face/wea00035.png
@@ -2493,7 +2413,6 @@
 ./data/train/non-face/xeso0437c.png
 ./data/train/non-face/xeso9924d.png
 ./data/train/non-face/xeso1226c.png
-./data/train/non-face/xfingerprint104_3.png
 ./data/train/non-face/facade0134.png
 ./data/train/non-face/line1941.png
 ./data/train/non-face/mcgillmerry0135.png
@@ -2526,14 +2445,12 @@
 ./data/train/non-face/line2509.png
 ./data/train/non-face/xeso0416e.png
 ./data/train/non-face/xeso0944a.png
-./data/train/non-face/xfingerprint106_1.png
 ./data/train/non-face/xeso0417c.png
 ./data/train/non-face/xeso9211a.png
 ./data/train/non-face/aUPenn069.png
 ./data/train/non-face/mcgillpippin_Mex07_020.png
 ./data/train/non-face/mcgillpippin_Peel026.png
 ./data/train/non-face/mcgillpippin_Mex07_034.png
-./data/train/non-face/xfingerprint106_3.png
 ./data/train/non-face/anim0873.png
 ./data/train/non-face/aUPenn055.png
 ./data/train/non-face/xeso-hq-aerial-fotag3-07-07.png
@@ -2589,7 +2506,6 @@
 ./data/train/non-face/facade0056.png
 ./data/train/non-face/mcgillmerry_winter0003.png
 ./data/train/non-face/disaster51_1096.png
-./data/train/non-face/xfingerprint102_7.png
 ./data/train/non-face/wea00023.png
 ./data/train/non-face/xeso0421a.png
 ./data/train/non-face/wea00037.png
@@ -2665,7 +2581,6 @@
 ./data/train/non-face/facade0043.png
 ./data/train/non-face/facade0057.png
 ./data/train/non-face/wea00022.png
-./data/train/non-face/xfingerprint102_6.png
 ./data/train/non-face/disaster51_1097.png
 ./data/train/non-face/disaster51_1108.png
 ./data/train/non-face/mcgillpippin_city38.png
@@ -2711,7 +2626,6 @@
 ./data/train/non-face/xeso1123a.png
 ./data/train/non-face/anim0872.png
 ./data/train/non-face/aUPenn054.png
-./data/train/non-face/xfingerprint106_2.png
 ./data/train/non-face/mcgillpippin_Mex07_035.png
 ./data/train/non-face/mcgillpippin_Peel027.png
 ./data/train/non-face/xeso0944b.png
