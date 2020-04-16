@@ -31,7 +31,10 @@ void make_predictions(Model *m, Train_example *examples, i32 example_num);
 i32 screen_examples(Train_example *examples, i32 example_num);
 i8 model_func(Model *m, image integ);
 Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Data v_neg_data, i32 wnd_size, float fpr_overall, float fpr_perlayer, float fnr_perlayer);
-
+i32 calc_sub_wnd_num(i32 w, i32 h, i32 wnd_size, float scale_size, i32 step_size);
+Train_example *get_sub_wnd(image im, i32 *wnd_num, i32 wnd_size, float scale_size, i32 step_size);
+i32 detect(image im, Model *model);
+float test_model(Model *m, Train_example *examples, i32 example_num);
 
 
 /*utils.h*/
@@ -42,7 +45,7 @@ int constrain_int(int a, int min, int max);
 /*data.h*/
 Data load_image_data(char *images);
 Train_example * make_pos_example(Data data);
-Train_example * make_neg_example(Data data, i32 init_flag, i32 example_num, i32 wnd_size, Model *pModel);
+Train_example * make_neg_example(Data data, i32 init_flag, i32 example_num, i32 wnd_size, Model *pModel, float fpr);
 Train_example *merge_pos_neg(Train_example *pos, i32 pos_num, Train_example *neg, i32 neg_num);
 void prepare_pos_examples(Data data);
 Feat_info **make_parallel_examples(i32 example_num, i32 feat_num);

@@ -8,6 +8,11 @@ typedef struct training_example
 	i32 predict_label;
 	float feat_val;
 	float weight;
+
+	u16 size;/*窗口大小*/
+    u16 x;/*X轴是竖直方向*/
+    u16 y;/*Y轴是水平方向*/
+	image src_img;
 }Train_example;
 
 

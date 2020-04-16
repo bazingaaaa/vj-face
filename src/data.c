@@ -47,7 +47,7 @@ Data load_image_data(char *images)
     i32 count = 0;
 
     while(nd){
-        im_array[count] = load_image((char*)nd->val, 0);
+        im_array[count] = load_image_extend((char*)nd->val);
 
         nd = nd->next;
         count++;
@@ -147,8 +147,9 @@ Train_example * make_pos_example(Data data)
      wnd_size-样本图像大小
      m-级联模型,用于筛选假阳性样本
 备注：初始时随机取出指定数量的负样本数据，在训练过程中需要根据模型挑选出指定数量的假阳性样本
+     当fpr（假阳性率）极小时，假阳性样本很难获取，此时采用遍历所有图片的方式寻找
 */
-Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 wnd_size, Model *m)
+Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 wnd_size, Model *m, float fpr)
 {
     i32 count = 0;
     i32 im_size = data.im_num;
@@ -156,36 +157,45 @@ Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 w
     float var;
     i32 i, j, k;
     image cropped, candidate;
-    
+    static i32 im_idx_recorder;/*记录上一次抽取样本的图片索引*/
+
     Train_example *examples = (Train_example*)malloc(sizeof(Train_example) * example_num);
     //srand(1);
-    while(count < example_num)
+    if(init_flag == 0 || fpr > 10e-4)
     {
-        i32 im_idx = rand() % im_size;
-        i32 w = data.im_array[im_idx].w;
-        i32 h = data.im_array[im_idx].h;
-        if(w < wnd_size || h < wnd_size)/*图片太小*/
-        {   
-            continue;
-        }
-        i32 dx = rand()%(w - wnd_size);
-        i32 dy = rand()%(h - wnd_size);
-        cropped = crop_image_extend(data.im_array[im_idx], dx, dy, wnd_size, wnd_size);
-        mean = calc_im_mean(cropped);
-        var = calc_im_var(cropped, mean);
-        candidate = normalize_integral_image(cropped, mean, var);
-        free_image(cropped);
-        if(var < 1 || (init_flag == 0 && 1 != model_func(m, candidate)))/*方差太小，数据对模型没有帮助*/
+        while(count < example_num)
         {
-            //free_image(cropped);
-            free_image(candidate);
-            continue;
-        }
-        examples[count].integ = candidate;
-        examples[count].label = -1;
+            i32 im_idx = rand() % im_size;
+            i32 w = data.im_array[im_idx].w;
+            i32 h = data.im_array[im_idx].h;
+            if(w < wnd_size || h < wnd_size)/*图片太小*/
+            {   
+                continue;
+           }
+            i32 dx = rand()%(w - wnd_size);
+            i32 dy = rand()%(h - wnd_size);
+            cropped = crop_image_extend(data.im_array[im_idx], dx, dy, wnd_size, wnd_size);
+            mean = calc_im_mean(cropped);
+            var = calc_im_var(cropped, mean);
+            candidate = normalize_integral_image(cropped, mean, var);
+            free_image(cropped);
+            if(var < 1 || (init_flag == 0 && 1 != model_func(m, candidate)))/*方差太小，数据对模型没有帮助*/
+            {
+                //free_image(cropped);
+                free_image(candidate);
+                continue;
+            }
+            examples[count].integ = candidate;
+            examples[count].label = -1;
             
-        count++;
+            count++;
+        }
     }
+    else
+    {
+
+    }
+   
     return examples;
 }
 

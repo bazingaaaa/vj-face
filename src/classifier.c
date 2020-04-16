@@ -143,7 +143,7 @@ Stump *find_best_stump(Feat_info **parallel_examples, Train_example *examples, i
 		candidate[i] = search_decision_stump(parallel_examples[i], example_num);
 	}
 
-
+	/*找寻最优的决策桩*/
 	for(i = 0; i < feat_num; i++)
 	{
 		/*搜索决策桩*/
@@ -275,12 +275,6 @@ Stage *adaboost(Feat_info** parallel_examples, Train_example *examples, i32 exam
 
 		a_t = 1.0 / 2 * log((1 - err_t) / err_t);
 		stmp->weight = a_t;
-
-		//printf("t:%d err_t:%f\n", t, err_t);
-		//printf("type:%d i:%d j:%d w:%d h:%d\n", stmp->feat.type, stmp->feat.i, stmp->feat.j, stmp->feat.w, stmp->feat.h);
-		
-		//float rate = test_stump(stmp, examples, example_num);
-		//printf("rate:%f\n", rate);
 
 		/*更新权重值*/
     	#pragma omp parallel for

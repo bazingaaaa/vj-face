@@ -1,9 +1,9 @@
 Viola jones face detection implementation
 ====
-##说明##
+### 说明
 语言：c语言
 
-平台：macOS
+平台：macOS/linux
 
 
 参考文章

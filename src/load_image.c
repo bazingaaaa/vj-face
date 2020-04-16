@@ -118,11 +118,19 @@ image load_image_stb(char *filename, int channels, int norm_flag)
     return im;
 } 
 
-image load_image(char *filename, int norm_flag)
+image load_image(char *filename)
 {
-    image out = load_image_stb(filename, 0, norm_flag);
+    image out = load_image_stb(filename, 0, 1);
     return out;
 }
+
+
+image load_image_extend(char *filename)
+{
+    image out = load_image_stb(filename, 0, 0);
+    return out;
+}
+
 
 void free_image(image im)
 {

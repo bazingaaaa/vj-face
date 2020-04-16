@@ -1,6 +1,9 @@
 #ifndef _TYPE_H_
 #define _TYPE_H_
 
+typedef unsigned long u64;
+typedef long i64;
+
 typedef unsigned int u32;
 typedef int i32;
 

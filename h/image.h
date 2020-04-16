@@ -41,7 +41,8 @@ typedef struct sub_wnd
 
 // Loading and saving
 image make_image(int w, int h, int c);
-image load_image(char *filename, int norm_flag);
+image load_image(char *filename);
+image load_image_extend(char *filename);
 void save_image(image im, const char *name);
 void save_png(image im, const char *name);
 void free_image(image im);
@@ -62,6 +63,8 @@ image crop_image_extend(image im, int dx, int dy, int w, int h);
 image normalize_integral_image(image im, float mean, float var);
 image down_sample(image im, i32 wnd_size);
 void draw_box(image im, i32 x, i32 y, i32 w, i32 h, float r, float g, float b);
+image rgb_to_grayscale(image im);
+void scale_image(image m, float s);
 
 
 #endif

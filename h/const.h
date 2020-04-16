@@ -27,6 +27,14 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
                                     a=max;\
                                 }
 
+
+#define MAX_DEPTH(l) (MIN((10 * l) + 10, 200))
+//#define MAX_DEPTH(l) (1)
+
+#define UNIT_DECAY_RATE (0.8)
+#define FPR_GOAL (10e-7)
+
+
 /*目前仅实现一种特征模式*/
 typedef enum haar_feature_mode
 {

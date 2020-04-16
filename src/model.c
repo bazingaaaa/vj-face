@@ -9,10 +9,7 @@
 #include "list.h"
 
 
-#define MAX_DEPTH(l) (MIN((10 * l) + 10, 200))
-//#define MAX_DEPTH(l) (1)
 
-#define UNIT_DECAY_RATE (0.8)
 
 /*
 功能：模型加载
@@ -217,8 +214,8 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 	printf("make valid pos example finish\n");	
 
 	/*收集初始的训练和验证所用的负样本*/
-	Train_example *t_neg = make_neg_example(t_neg_data, 1, t_neg_num, wnd_size, NULL);
-	Train_example *v_neg = make_neg_example(v_neg_data, 1, v_neg_num, wnd_size, NULL);
+	Train_example *t_neg = make_neg_example(t_neg_data, 1, t_neg_num, wnd_size, NULL, 0);
+	Train_example *v_neg = make_neg_example(v_neg_data, 1, v_neg_num, wnd_size, NULL, 0);
 	Train_example *examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);
 	example_num = t_pos_num + t_neg_num;/*所有样本*/
 
@@ -264,10 +261,10 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 			default:
 				break;
 		}
-		//fpr_r = MAX(fpr_e, fpr_g);
-		fpr_r = (fpr_e + fpr_g) / 2;
-		//fnr_r = MAX(fnr_e, fnr_g);
-		fnr_r = (fnr_e + fnr_g) / 2;
+		fpr_r = MAX(fpr_e, fpr_g);
+		//fpr_r = (fpr_e + fpr_g) / 2;
+		fnr_r = MAX(fnr_e, fnr_g);
+		//fnr_r = (fnr_e + fnr_g) / 2;
 
 		printf("layer:%d stump_num:%d s_l:%f u:%f\n", l, new_stage->stump_num, s_l, u);
 		printf("training set: fnr:%f fpr:%f\nvalidationset fnr:%f fpr:%f\n", fnr_e, fpr_e, fnr_g, fpr_g);
@@ -308,7 +305,7 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 		}
 		else
 		{
-			if(T_l >= MAX_DEPTH(l))/*深度达到上限*/
+			if(T_l > MAX_DEPTH(l))/*深度达到上限*/
 			{
 				s_l = -1;
 				while(1 - fnr_r < 0.99)
@@ -319,10 +316,10 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 					fpr_g = 1 - test_stage(new_stage, v_neg, v_neg_num);
 					fnr_e = 1 - test_stage(new_stage, t_pos, t_pos_num);
 					fnr_g = 1 - test_stage(new_stage, v_pos, v_pos_num);
-					//fpr_r = MAX(fpr_e, fpr_g);
-					fpr_r = (fpr_e + fpr_g) / 2;
-					//fnr_r = MAX(fnr_e, fnr_g);
-					fnr_r = (fnr_e + fnr_g) / 2;
+					fpr_r = MAX(fpr_e, fpr_g);
+					//fpr_r = (fpr_e + fpr_g) / 2;
+					fnr_r = MAX(fnr_e, fnr_g);
+					//fnr_r = (fnr_e + fnr_g) / 2;
 				}
 				fpr = fpr * fpr_r;
 				printf("fnr:%f fpr:%f\n", fnr_r, fpr_r);
@@ -344,7 +341,7 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 		printf("add one stage\n");
 
 
-		if(l % 2 == 0)/*每两层保存一次模型*/
+		if(l % 1 == 0)/*每两层保存一次模型*/
 		{
 			char buf[100];
 			i32 len = sprintf(buf, "./backup/attentional_cascade_%d.cfg", l);
@@ -368,8 +365,8 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 		free(t_neg);
 		free(v_neg);
 		free(examples);
-		t_neg = make_neg_example(t_neg_data, 0, t_neg_num, wnd_size, model);
-		v_neg = make_neg_example(v_neg_data, 0, v_neg_num, wnd_size, model);
+		t_neg = make_neg_example(t_neg_data, 0, t_neg_num, wnd_size, model, fpr);
+		v_neg = make_neg_example(v_neg_data, 0, v_neg_num, wnd_size, model, fpr);
 		examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);
 		example_num = t_neg_num + t_pos_num;
 
@@ -426,7 +423,23 @@ void make_predictions(Model *m, Train_example *examples, i32 example_num)
 	#pragma omp parallel for
 	for(i = 0; i < example_num; i++)
 	{
-		examples[i].predict_label = model_func(m, examples[i].integ);
+		float mean, var;
+		image cropped = crop_image_extend(examples[i].src_img, examples[i].y, examples[i].x, examples[i].size, examples[i].size);
+        mean = calc_im_mean(cropped);
+        var = calc_im_var(cropped, mean);
+        if(var < 1)
+       	{
+       		free_image(cropped);
+			examples[i].predict_label = -1;
+       	}
+       	else
+       	{
+       		//scale_image(examples[0].src_img, 1.0/255);
+			//show_image(examples[0].src_img, "test", 5000000);
+			examples[i].integ = normalize_integral_image(cropped, mean, var);
+			examples[i].predict_label = model_func(m, examples[i].integ);
+       		free_image(cropped);
+       	}
 	}
 }
 
@@ -457,11 +470,66 @@ i32 screen_examples(Train_example *examples, i32 example_num)
 
 
 /*
-功能：扫描整个图像，筛选出
+功能：生成扫描图像获得的所有子窗，并对所有子窗进行预测
 */
-Sub_wnd *scan_image(Model *model, image im, i32 *wnd_num)
+Train_example *scan_image(Model *model, image im, i32 *wnd_num, i32 wnd_size, float scale_size, i32 step_size)
 {
+	i32 i;
 
+	/*生成图像中所有子窗*/
+	Train_example *examples = get_sub_wnd(im, wnd_num, wnd_size, scale_size, step_size);
+
+	//scale_image(examples[0].src_img, 1.0/255);
+	//show_image(examples[0].src_img, "test", 5000000);
+
+	/*对所有子窗进行检测*/
+	make_predictions(model, examples, *wnd_num);
+
+	return examples;
+}
+
+
+/*
+功能：获取图像中所有子窗
+*/
+Train_example *get_sub_wnd(image im, i32 *wnd_num, i32 wnd_size, float scale_size, i32 step_size)
+{
+	i32 c, i, j, k;
+	i32 w = im.w, h = im.h;
+	i32 sub_wnd_num = calc_sub_wnd_num(w, h, wnd_size, scale_size, step_size);
+	Train_example *sub_wnds = (Train_example*)malloc(sizeof(Train_example) * sub_wnd_num);
+	float wnd_max_scale_up = MIN(w * 1.0 / wnd_size, h * 1.0 / wnd_size);/*子窗最大可放大倍数*/
+	i32 wnd_max_scale_times = log(wnd_max_scale_up) / log(scale_size);/*子窗最多可放大次数*/
+	i32 wnd_count = 0;
+	i32 wnd_scale_size;
+	i32 step;
+	i32 w_step_num;
+	i32 h_step_num;
+
+
+	for(c = 0; c <= wnd_max_scale_times; c++)
+	{
+		wnd_scale_size = wnd_size * pow(scale_size, c);
+		//step = train_flag == 1 ? 1 : wnd_scale_size * step_size;
+		w_step_num = (w - wnd_scale_size) / step_size + 1;
+		h_step_num = (h - wnd_scale_size) / step_size + 1;
+		for(i = 0; i < h_step_num; i++)
+		{
+			for(j = 0; j < w_step_num; j++)
+			{
+				sub_wnds[wnd_count].size = wnd_scale_size;
+				sub_wnds[wnd_count].x = i * step_size;
+				sub_wnds[wnd_count].y = j * step_size;
+				sub_wnds[wnd_count].src_img = im;
+				wnd_count++;
+			}
+		}
+	}
+	
+	assert(wnd_count == sub_wnd_num);
+	*wnd_num = sub_wnd_num;
+
+	return sub_wnds;
 }
 
 
@@ -478,3 +546,75 @@ void free_model(Model *model)
 {
 
 }
+
+
+/*
+功能：计算图像中可能包含的子窗数目
+*/
+i32 calc_sub_wnd_num(i32 w, i32 h, i32 wnd_size, float scale_size, i32 step_size)
+{
+	float wnd_max_scale_up = MIN(w * 1.0 / wnd_size, h * 1.0 / wnd_size);/*子窗最大可放大倍数*/
+	i32 wnd_max_scale_times = log(wnd_max_scale_up) / log(scale_size);/*子窗最多可放大次数*/
+	i32 i;
+	i32 wnd_num = 0;
+	
+	for(i = 0; i  <= wnd_max_scale_times; i++)
+	{
+		i32 wnd_scale_size = wnd_size * pow(scale_size, i);
+		//i32 step = train_flag == 1 ? 1 : wnd_scale_size * step_size;
+		i32 nw = (w - wnd_scale_size) / step_size + 1;
+		i32 nh = (h - wnd_scale_size) / step_size + 1;
+		wnd_num += nw * nh;
+	}	
+	
+	return wnd_num;
+}
+
+
+/*
+功能：检测一副图像，并画上检测框
+参数：im-待检测图像
+     model-检测用到的模型
+返回值：检测框数目
+备注：对图像中的目标进行检测，并在图像上画出检测框
+*/
+i32 detect(image im, Model *model)
+{
+	image im_gray;
+	i32 wnd_num;
+	i32 i;
+	i32 count = 0;
+
+	times("detect beg\n");
+	if(3 == im.c)
+	{
+		im_gray = rgb_to_grayscale(im);
+	}
+	else
+	{
+		im_gray = im;
+	}
+	
+	Train_example *examples = scan_image(model, im_gray, &wnd_num, 24, 1.5, 2);
+
+	for(i = 0; i < wnd_num; i++)
+	{
+		if(examples[i].predict_label == 1)
+		{
+			draw_box(im, examples[i].x, examples[i].y, examples[i].size, examples[i].size, 255, 0, 0);
+			count++;
+		}
+	}
+	printf("wnd_num:%d\n", wnd_num);
+	printf("count:%d\n", count);
+
+	times("detect end\n");
+
+	free_image(im_gray);
+
+	scale_image(im, 1.0/255);
+
+	show_image(im, "test", 500000);
+}
+
+

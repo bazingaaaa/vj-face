@@ -216,7 +216,8 @@ image crop_image(image im, int dx, int dy, int w, int h)
 image crop_image_extend(image im, int dx, int dy, int w, int h)
 {
     image cropped = make_image(w, h, 1);
-    int i, j, k;
+    int i, j;
+    #pragma omp parallel for private(j, i)
     for(j = 0; j < h; ++j){
         for(i = 0; i < w; ++i){
             int r = j + dy;
@@ -391,4 +392,34 @@ void draw_box(image im, i32 x, i32 y, i32 w, i32 h, float r, float g, float b)
         im.data[x1 + i*im.w + 2*im.w*im.h] = b;
         im.data[x2 + i*im.w + 2*im.w*im.h] = b;
     }
+}
+
+
+/*
+功能：将rgb图像转换为灰度图像
+*/
+image rgb_to_grayscale(image im)
+{
+    int i, j;
+    assert(im.c == 3);
+    image gray = make_image(im.w, im.h, 1);
+    for(i = 0;i < im.w;i++)
+    {
+        for(j = 0;j < im.h;j++)
+        {
+            int pixel_index = i + j * im.w;
+            gray.data[pixel_index] = 0.299 * im.data[pixel_index] + 0.587 * im.data[pixel_index + im.w *im.h] + 0.114 * im.data[pixel_index + 2 * im.w *im.h];
+        }
+    }
+    return gray;
+}
+
+
+/*
+功能：图像像素乘以特定值
+*/
+void scale_image(image m, float s)
+{
+    int i;
+    for(i = 0; i < m.h*m.w*m.c; ++i) m.data[i] *= s;
 }
