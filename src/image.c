@@ -264,7 +264,7 @@ image make_gaussian_filter(float sigma)
 
 
 /*
-功能：对灰度图像进行卷进
+功能：对灰度图像进行卷积
 备注：处理图像边界时用最邻近的元素填充
 */
 image convolve_image(image im, image filter)
@@ -331,6 +331,7 @@ image down_sample(image im, i32 wnd_size)
     float sigma = 0.6 * sqrt((e * 1.0 / wnd_size) * (e * 1.0 / wnd_size) - 1);/*论文中给出的公式*/
     image im_smooth = gaussian_filter_image(im, sigma);
     image out = make_image(wnd_size, wnd_size, 1);
+
     for(i = 0; i < wnd_size; i++)
     {
         for(j = 0; j < wnd_size; j++)

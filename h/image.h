@@ -14,15 +14,6 @@ typedef struct{
 } image;
 
 
-typedef struct sub_wnd
-{
-    u16 size;/*窗口大小*/
-    u16 startPosX;/*X轴是竖直方向*/
-    u16 startPosY;/*Y轴是水平方向*/
-    
-    image imIntegral;/*窗口一阶积分图像*/
-}Sub_wnd;
-
 
 #ifdef OPENCV
     #include "opencv2/opencv.hpp"

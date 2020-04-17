@@ -8,6 +8,9 @@
 #include "proto.h"
 #include "list.h"
 #include <time.h>
+#include <vector>
+
+using namespace std;
 
 
 
@@ -17,7 +20,7 @@ char *fgetl(FILE *fp);
 /*
 功能：创建一个链表，链表中的每个元素代表文件中的每一列
 */
-list *get_lines(char *filename)
+List *get_lines(char *filename)
 {
     char *path;
     FILE *file = fopen(filename, "r");
@@ -25,7 +28,7 @@ list *get_lines(char *filename)
         fprintf(stderr, "Couldn't open file %s\n", filename);
         exit(0);
     }
-    list *lines = make_list();
+    List *lines = make_list();
     while((path=fgetl(file))){
         list_insert(lines, path);
     }
@@ -41,7 +44,7 @@ list *get_lines(char *filename)
 Data load_image_data(char *images)
 {
     Data im_data;
-    list *image_list = get_lines(images);
+    List *image_list = get_lines(images);
     image *im_array = (image*)malloc(sizeof(image) * image_list->size);
     node *nd = image_list->front;
     i32 count = 0;
@@ -149,7 +152,7 @@ Train_example * make_pos_example(Data data)
 备注：初始时随机取出指定数量的负样本数据，在训练过程中需要根据模型挑选出指定数量的假阳性样本
      当fpr（假阳性率）极小时，假阳性样本很难获取，此时采用遍历所有图片的方式寻找
 */
-Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 wnd_size, Model *m, float fpr, float scale_size, i32 step_size)
+Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 wnd_size, Model *model, float fpr, float scale_size, i32 step_size)
 {
     i32 count = 0;
     i32 im_size = data.im_num;
@@ -158,12 +161,13 @@ Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 w
     i32 i, j, k;
     image cropped, candidate;
     static i32 im_idx_recorder = 0;/*记录上一次抽取样本的图片索引*/
+    Train_example *examples;
 
-    Train_example *examples = (Train_example*)malloc(sizeof(Train_example) * example_num);
     //srand(1);
-    //if(init_flag == 1 || fpr > 10e-4)
-    if(init_flag == 1)
+    if(init_flag == 1 || fpr > 10e-5)/*首次获取样本或者假阳性率较高*/
+    //if(init_flag == 1)
     {
+        examples = (Train_example*)malloc(sizeof(Train_example) * example_num);
         while(count < example_num)
         {
             i32 im_idx = rand() % im_size;
@@ -180,7 +184,7 @@ Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 w
             var = calc_im_var(cropped, mean);
             candidate = normalize_integral_image(cropped, mean, var);
             free_image(cropped);
-            if(var < 1 || (init_flag == 0 && 1 != model_func(m, candidate)))/*方差太小，数据对模型没有帮助*/
+            if(var < 1 || (init_flag == 0 && 1 != model_func(model, candidate)))/*方差太小，数据对模型没有帮助*/
             {
                 //free_image(cropped);
                 free_image(candidate);
@@ -194,36 +198,7 @@ Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 w
     }
     else/*假阳性率极低*/
     {
-        while(count < example_num)
-        {
-            if(im_idx_recorder >= data.im_num)
-            {
-                im_idx_recorder = 0;
-            }
-            image im = data.im_array[im_idx_recorder];
-            i32 wnd_num;
-            Train_example *candidate = scratch_for_FP(m, im, &wnd_num, wnd_size, scale_size, step_size);
-            for(i = 0; i < wnd_num; i++)
-            {
-                if(candidate[i].predict_label == 1)
-                {
-                    if(count >= example_num)
-                    {
-                        free_image(candidate[i].integ);
-                    }
-                    else
-                    {
-                        assert(candidate[i].integ.w >= wnd_size);
-                        examples[count].integ = candidate[i].integ;
-                        examples[count].label = -1;
-                        count++;
-                    }
-                }
-            }
-            free(candidate);
-
-            im_idx_recorder++;
-        }
+        examples = scratch_for_FP_(data, model, example_num, wnd_size, scale_size, step_size);
     }
    
     return examples;
@@ -286,3 +261,47 @@ void free_image_data(Data data)
         free_image(data.im_array[i]);
     }
 }
+
+
+/*
+功能：补充假阳性样本
+*/
+Train_example *scratch_for_FP_(Data data, Model *model, i32 example_num, i32 wnd_size, float scale_size, i32 step_size)
+{
+    Train_example *examples = (Train_example*)malloc(sizeof(Train_example) * example_num);
+    static i32 im_idx_recorder = 0;/*记录之前收集假阳性样本的图像索引*/
+    i32 count = 0;
+    vector<Sub_wnd> candidate;
+    i32 i;
+
+    while(count < example_num)
+    {
+        if(im_idx_recorder >= data.im_num)
+        {
+            im_idx_recorder = 0;
+        }
+        image im = data.im_array[im_idx_recorder];
+        scan_image_for_training(candidate, model, im, wnd_size, scale_size, step_size);
+        //printf("scan_image get :%d positives\n", candidate.size());
+        //times("scan_image_for_training");
+        for(i = 0; i < candidate.size(); i++)
+        {
+            if(count < example_num)
+            {
+                examples[count].integ = candidate[i].integ;
+                examples[count].label = -1;
+                count++;
+            }
+            else/*释放收集的超过指定样本数量的假阳性样本，在训练后期基本不会发生，因为一副图像产生的假阳性样本很有限*/
+            {
+                free_image(candidate[i].integ);
+            }
+        }
+        candidate.resize(0);
+        im_idx_recorder++;
+    }   
+
+    return examples;
+} 
+
+

@@ -7,9 +7,9 @@
 /*
 功能:生成列表
 */
-list *make_list()
+List *make_list()
 {
-	list *l = (list*)malloc(sizeof(list));
+	List *l = (List*)malloc(sizeof(List));
 	l->size = 0;
 	l->front = 0;
 	l->back = 0;
@@ -20,7 +20,7 @@ list *make_list()
 /*
 功能:从链表中弹出元素
 */
-void *list_pop(list *l)
+void *list_pop(List *l)
 {
     if(!l->back) return 0;
     node *b = l->back;
@@ -37,7 +37,7 @@ void *list_pop(list *l)
 /*
 功能:在链表尾部插入元素
 */
-void list_insert(list *l, void *val)
+void list_insert(List *l, void *val)
 {
 	node *newNode = (node*)malloc(sizeof(node));
 	newNode->val = val;
@@ -76,7 +76,7 @@ void free_node(node *n)
 /*
 功能:释放链表
 */
-void free_list(list *l)
+void free_list(List *l)
 {
 	free_node(l->front);
 	free(l);
@@ -86,7 +86,7 @@ void free_list(list *l)
 /*
 功能：释放节点内容
 */
-void free_list_contents(list *l)
+void free_list_contents(List *l)
 {
 	node *n = l->front;
 	while(n)
@@ -100,7 +100,7 @@ void free_list_contents(list *l)
 /*
 功能：链表转为数组
 */
-void **list_to_array(list *l)
+void **list_to_array(List *l)
 {
     void **a = (void**)calloc(l->size, sizeof(void*));
     int count = 0;

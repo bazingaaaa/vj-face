@@ -7,8 +7,10 @@
 #include "data.h"
 #include "proto.h"
 #include "list.h"
+#include <vector>
 
 
+using namespace std;
 
 
 /*
@@ -38,6 +40,7 @@ Model *load_model(const char* path)
 	fread(&m->stage_num, sizeof(i32), 1, fp);
 	Stage *stage = (Stage*)malloc(sizeof(Stage) * m->stage_num);
 	m->head_stage = stage;
+
 	for(i = 0; i < m->stage_num; i++)
 	{
 		fread(&stage[i], sizeof(Stage), 1, fp);
@@ -69,6 +72,8 @@ Model *load_model(const char* path)
 
 /*
 功能：保存模型
+参数：m-待保存的模型
+	 path-模型保存的路径
 备注：将模型保存至文件系统
 */
 i8 save_model(Model *m, const char* path)
@@ -113,6 +118,8 @@ i8 save_model(Model *m, const char* path)
 
 /*
 功能：模型推断函数
+参数：m-模型
+	 integ-模型输入（积分图像）
 */
 i8 model_func(Model *m, image integ)
 {
@@ -135,15 +142,267 @@ i8 model_func(Model *m, image integ)
 
 
 /*
+功能：模型测试
+返回值：正确预测的样本数占样本总数的比率
+*/
+float test_model(Model *m, Train_example *examples, i32 example_num)
+{
+	i32 i;
+	i32 count = 0;
+
+	for(i = 0; i < example_num; i++)
+	{
+		if(examples[i].label == model_func(m, examples[i].integ))
+		{
+			count++;
+		}
+	}
+	return 1.0 * count / example_num;
+}
+
+
+/*
+功能：对样本中的真阴性的样本进行剔除
+返回值：移除的真阴性样本数
+备注：
+*/
+i32 screen_examples(Train_example *examples, i32 example_num)
+{
+	i32 count = 0;
+	i32 i;
+
+	for(i = example_num - 1; i >=0; i--)
+	{
+		if(examples[i].predict_label == -1 && examples[i].label == -1)/*真阴性样本*/
+		{
+			free_image(examples[i].integ);
+			free_image(examples[i].integ);
+			memcpy(&examples[i], &examples[example_num - 1], sizeof(Train_example));
+			example_num--;
+			count++;
+		}
+	}
+	return count;
+}
+
+
+/*
+功能：检测后处理，对检测窗进行进一步筛选，剔除掉虚警和重复检测
+*/
+void post_processing()
+{
+
+}
+
+
+/*
+功能：释放模型占用的内存
+*/
+void free_model(Model *model)
+{
+
+}
+
+
+/*
+功能：检测一副图像，并画上检测框
+参数：im-待检测图像
+     model-检测用到的模型
+返回值：检测框数目
+备注：对图像中的目标进行检测，并在图像上画出检测框
+*/
+i32 run_detection(image im, Model *model)
+{
+	image im_gray;
+	i32 wnd_num;
+	i32 i;
+	i32 count = 0;
+	vector<Sub_wnd> candidate;
+
+	times("detect beg\n");
+	if(3 == im.c)
+	{
+		im_gray = rgb_to_grayscale(im);
+	}
+	else
+	{
+		im_gray = im;
+	}
+	
+	/*扫描整个图像，产生候选窗*/
+ 	scan_image(candidate, model, im_gray, 24, 1.5, 1);
+	
+	for(i = 0; i < candidate.size(); i++)
+	{
+		draw_box(im, candidate[i].pos_i, candidate[i].pos_j, candidate[i].size, candidate[i].size, 255, 0, 0);
+	}
+
+	printf("detection count:%d\n", candidate.size());
+
+
+	free_image(im_gray);
+	
+	times("detect end\n");
+
+	scale_image(im, 1.0/255);
+
+	show_image(im, "test", 500000);
+}
+
+
+/*
+功能：扫描图像（非训练时使用）
+备注：对应论文An Analysis of the Viola-Jones Face Detection Algorithm中的算法7
+     该函数只用于对图像的检测，训练时不需要使用
+*/
+void scan_image(vector<Sub_wnd> &candidate, Model *model, image im, i32 wnd_size, float scale_size, i32 step_size)
+{
+	i32 ij;
+	i32 w = im.w, h = im.h;
+	i32 possibleI = (h - wnd_size) / step_size + 1;
+	i32 possibleJ = (w - wnd_size) / step_size + 1;
+	i32 possibleConers = possibleI * possibleJ;
+		
+	#pragma omp parallel for 
+	for(ij = 0; ij < possibleConers; ij++)
+	{
+		int i = ij / possibleJ;
+		int j = ij % possibleJ;
+		float scale = 1;
+		Sub_wnd wnd;
+		wnd.pos_i = i;
+		wnd.pos_j = j;
+		wnd.size = wnd_size;
+		while(i + wnd.size <= h && j + wnd.size <= w)
+		{
+			float mean, var;
+			image cropped = crop_image_extend(im, j, i, wnd.size, wnd.size);
+	    	mean = calc_im_mean(cropped);
+	    	var = calc_im_var(cropped, mean);
+	    	if(var >= 1)
+	   		{
+				image integ = normalize_integral_image(cropped, mean, var);
+				if(1 == model_func(model, integ))
+				{
+					#pragma omp critical
+					{
+ 						candidate.push_back(wnd);
+					}
+				}
+   				free_image(integ);
+   			}
+   			free_image(cropped);
+
+   			scale *= scale_size;
+			wnd.size = NEAREST_INTEGER(wnd_size * scale);
+		}
+	}
+}
+
+
+
+/*
+功能：扫描图像以获取指定大小的假阳性样本用于训练
+备注：对应论文An Analysis of the Viola-Jones Face Detection Algorithm中的算法7，8，9结合到一起
+	 此处扫描图像收集的子窗用于训练，对子窗进行了降采样使大小满足训练要求。
+*/
+void scan_image_for_training(vector<Sub_wnd> &candidate, Model *model, image im, i32 wnd_size, float scale_size, i32 step_size)
+{
+	i32 ij;
+	i32 w = im.w, h = im.h;
+	i32 possibleI = (h - wnd_size) / step_size + 1;
+	i32 possibleJ = (w - wnd_size) / step_size + 1;
+	i32 possibleConers = possibleI * possibleJ;
+
+	#pragma omp parallel for 
+	for(ij = 0; ij < possibleConers; ij++)
+	{
+		int i = ij / possibleJ;
+		int j = ij % possibleJ;
+		float scale = 1;
+		Sub_wnd wnd;
+		wnd.pos_i = i;
+		wnd.pos_j = j;
+		wnd.size = wnd_size;
+		while(i + wnd.size <= h && j + wnd.size <= w)
+		{
+			float mean, var;
+			image cropped = crop_image_extend(im, j, i, wnd.size, wnd.size);
+	    	mean = calc_im_mean(cropped);
+	    	var = calc_im_var(cropped, mean);
+	    	if(var >= 1)
+	   		{
+				image integ = normalize_integral_image(cropped, mean, var);
+				if(1 == model_func(model, integ))
+				{
+					if(wnd.size > wnd_size)
+		            {
+		                image cropped_small = down_sample(cropped, wnd_size);
+		                free_image(integ);
+		                integ = make_intergral_image(cropped_small);
+		                free_image(cropped_small);
+		                if(1 == model_func(model, integ))/*降采样后再次检测，若检测依然为正则收集该样本*/
+		                {
+		                    wnd.integ = integ;
+			                #pragma omp critical
+			                {
+								candidate.push_back(wnd);
+			                }
+		                }
+		                else
+		                {
+		                    free_image(integ);
+		                }
+		            }
+		            else
+		            {
+		                wnd.integ = integ;
+		                #pragma omp critical
+		                {
+							candidate.push_back(wnd);
+		                }
+		            }
+				}
+   				else
+   				{
+   					free_image(integ);
+   				}
+   			}
+   			free_image(cropped);
+
+   			scale *= scale_size;
+			wnd.size = NEAREST_INTEGER(wnd_size * scale);
+		}
+	}
+}
+
+
+/*
 功能：训练级联注意力模型
 备注：对应论文An Analysis of the Viola-Jones Face Detection Algorithm中的算法10
+	 可以持续训练
 */
-Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Data v_neg_data, i32 wnd_size, float fpr_overall, float fpr_perlayer, float fnr_perlayer)
+Model *attentional_cascade(Model *model, Data t_pos_data, Data v_pos_data, Data t_neg_data, Data v_neg_data, i32 wnd_size, float fpr_overall, float fpr_perlayer, float fnr_perlayer)
 {
-	Model *model = (Model*)malloc(sizeof(Model));
+	i32 l = 0;
 	Stage *tail_stage = NULL;
 	Stage *new_stage = NULL;
-	i32 l = 0;
+	i32 retrain_flag = 0;
+
+	if(model != NULL)/*继续训练*/
+	{
+		tail_stage = model->head_stage;
+		while(tail_stage->next_stage != NULL)
+		{
+			tail_stage = tail_stage->next_stage;
+		}
+		l = model->stage_num;
+		retrain_flag = 1;
+	}
+	else
+	{
+		model = (Model*)malloc(sizeof(Model));
+	}
 	float fpr = 1;
 	float u, s_l, T_l;
 	i32 opt_case = 0;/*用于代码间进行跳转*/
@@ -176,6 +435,35 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 	Train_example *v_neg = make_neg_example(v_neg_data, 1, v_neg_num, wnd_size, NULL, 0, 0, 0);
 	Train_example *examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);/*把正负样本合到一个数组中去*/
 	example_num = t_pos_num + t_neg_num;/*所有样本*/
+	
+
+	if(retrain_flag)/*继续训练，需要评估fpr并且更换训练中用到的负样本*/
+	{
+		float fpr_t = 1 - test_model(model, t_neg, t_neg_num);/*训练集的假阳性率*/
+		float fpr_v = 1 - test_model(model, v_neg, v_neg_num);/*训练集的假阳性率*/
+		/*评估当前模型的fpr*/
+		fpr = max(fpr_t, fpr_v);
+		printf("stage:%d fpr:%f\n", model->stage_num, fpr);
+		/*更换当前模型首次用到的假阳性样本*/
+		times("replenish examples beg\n");
+		/*重新收集负样本的训练集和验证集*/
+		for(i = 0; i < t_neg_num; i++)
+		{
+			free_image(t_neg[i].integ);
+		}
+		for(i = 0; i < v_neg_num; i++)
+		{
+			free_image(v_neg[i].integ);
+		}
+		free(t_neg);
+		free(v_neg);
+		free(examples);
+		t_neg = make_neg_example(t_neg_data, 0, t_neg_num, wnd_size, model, fpr, 1.5, 1);
+		v_neg = make_neg_example(v_neg_data, 0, v_neg_num, wnd_size, model, fpr, 1.5, 1);
+		examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);
+		example_num = t_neg_num + t_pos_num;
+		times("replenish examples end\n");
+	}
 
 	/*生成特征信息*/
 	Haar_feat *feat_array = make_haar_features(wnd_size, &feat_num);
@@ -224,8 +512,8 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 		fnr_r = MAX(fnr_e, fnr_g);
 		//fnr_r = (fnr_e + fnr_g) / 2;
 
-		printf("layer:%d stump_num:%d s_l:%f u:%f\n", l, new_stage->stump_num, s_l, u);
-		printf("training set: fnr:%f fpr:%f\nvalidationset fnr:%f fpr:%f\n", fnr_e, fpr_e, fnr_g, fpr_g);
+		//printf("layer:%d stump_num:%d s_l:%f u:%f\n", l, new_stage->stump_num, s_l, u);
+		//printf("training set: fnr:%f fpr:%f\nvalidationset fnr:%f fpr:%f\n", fnr_e, fpr_e, fnr_g, fpr_g);
 
 		if(fpr_r <= fpr_perlayer && fnr_r <= fnr_perlayer)
 		{
@@ -280,7 +568,7 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 					//fnr_r = (fnr_e + fnr_g) / 2;
 				}
 				fpr = fpr * fpr_r;
-				printf("fnr:%f fpr:%f\n", fnr_r, fpr_r);
+				//printf("fnr:%f fpr:%f\n", fnr_r, fpr_r);
 			}
 			else
 			{
@@ -294,22 +582,20 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 			}
 		}
 		opt_case = 0;
-		
-		printf("fpr:%f fpr_r:%f fnr_r:%f\n", fpr, fpr_r, fnr_r);
 		printf("add one stage\n");
+		printf("layer:%d stump_num:%d s_l:%f u:%f\n", l, new_stage->stump_num, s_l, u);
+		printf("fpr:%f fnr_r:%f fpr_r:%f\n", fpr, fnr_r, fpr_r);
 
-		if(l % 1 == 0)/*每两层保存一次模型*/
+		if(l % 1 == 0)/*每一层保存一次模型*/
 		{
 			char buf[100];
 			i32 len = sprintf(buf, "./backup/attentional_cascade_%d.cfg", l);
 			buf[len] = 0;
-			printf("save model layer:%d fpr:%f\n", l, fpr);
+			printf("save model stage:%d\n", l);
 			save_model(model, buf);
 		}
 	
-		printf("layer:%d stump_num:%d s_l:%f u:%f\n", l, new_stage->stump_num, s_l, u);
 		times("replenish examples beg\n");
-		
 		/*重新收集负样本的训练集和验证集*/
 		for(i = 0; i < t_neg_num; i++)
 		{
@@ -322,11 +608,10 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 		free(t_neg);
 		free(v_neg);
 		free(examples);
-		t_neg = make_neg_example(t_neg_data, 0, t_neg_num, wnd_size, model, fpr, 1.5, 12);
-		v_neg = make_neg_example(v_neg_data, 0, v_neg_num, wnd_size, model, fpr, 1.5, 12);
+		t_neg = make_neg_example(t_neg_data, 0, t_neg_num, wnd_size, model, fpr, 1.5, 1);
+		v_neg = make_neg_example(v_neg_data, 0, v_neg_num, wnd_size, model, fpr, 1.5, 1);
 		examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);
 		example_num = t_neg_num + t_pos_num;
-
 		times("replenish examples end\n");
 	}
 	times("attentional_cascade end\n");
@@ -352,292 +637,12 @@ Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Da
 
 
 /*
-功能：模型测试
+功能：人脸肤色检查
+返回值：1-通过检查
+	   0-未通过检查
+备注：只能在处理彩色图片时候使用
 */
-float test_model(Model *m, Train_example *examples, i32 example_num)
-{
-	i32 i;
-	i32 count = 0;
-
-	for(i = 0; i < example_num; i++)
-	{
-		if(examples[i].label == model_func(m, examples[i].integ))
-		{
-			count++;
-		}
-	}
-	return 1.0 * count / example_num;
-}
-
-
-/*
-功能：通过模型对样本进行预测
-*/
-void make_predictions(Model *m, Train_example *examples, i32 example_num)
-{
-	i32 i;
-
-	#pragma omp parallel for
-	for(i = 0; i < example_num; i++)
-	{
-		float mean, var;
-		image cropped = crop_image_extend(examples[i].src_img, examples[i].y, examples[i].x, examples[i].size, examples[i].size);
-	    mean = calc_im_mean(cropped);
-	    var = calc_im_var(cropped, mean);
-	    if(var < 1)
-	   	{
-   			free_image(cropped);
-			examples[i].predict_label = -1;
-   		}
-   		else
-   		{
-			examples[i].integ = normalize_integral_image(cropped, mean, var);
-			examples[i].predict_label = model_func(m, examples[i].integ);
-   			free_image(cropped);
-   			free_image(examples[i].integ);
-   		}
-	}
-}
-
-
-/*
-功能：对样本中的真阴性的样本进行剔除
-返回值：移除的真阴性样本数
-备注：
-*/
-i32 screen_examples(Train_example *examples, i32 example_num)
-{
-	i32 count = 0;
-	i32 i;
-
-	for(i = example_num - 1; i >=0; i--)
-	{
-		if(examples[i].predict_label == -1 && examples[i].label == -1)/*真阴性样本*/
-		{
-			free_image(examples[i].integ);
-			free_image(examples[i].integ);
-			memcpy(&examples[i], &examples[example_num - 1], sizeof(Train_example));
-			example_num--;
-			count++;
-		}
-	}
-	return count;
-}
-
-
-/*
-功能：生成扫描图像获得的所有子窗，并对所有子窗进行预测
-*/
-Train_example *scan_image(Model *model, image im, i32 *wnd_num, i32 wnd_size, float scale_size, i32 step_size)
-{
-	i32 i;
-
-	/*生成图像中所有子窗*/
-	Train_example *examples = get_sub_wnd(im, wnd_num, wnd_size, scale_size, step_size);
-
-	//scale_image(examples[0].src_img, 1.0/255);
-	//show_image(examples[0].src_img, "test", 5000000);
-
-	/*对所有子窗进行检测*/
-	make_predictions(model, examples, *wnd_num);
-
-	return examples;
-}
-
-
-/*
-功能：获取图像中所有子窗
-*/
-Train_example *get_sub_wnd(image im, i32 *wnd_num, i32 wnd_size, float scale_size, i32 step_size)
-{
-	i32 c, i, j, k;
-	i32 w = im.w, h = im.h;
-	i32 sub_wnd_num = calc_sub_wnd_num(w, h, wnd_size, scale_size, step_size);
-	Train_example *sub_wnds = (Train_example*)malloc(sizeof(Train_example) * sub_wnd_num);
-	float wnd_max_scale_up = MIN(w * 1.0 / wnd_size, h * 1.0 / wnd_size);/*子窗最大可放大倍数*/
-	i32 wnd_max_scale_times = log(wnd_max_scale_up) / log(scale_size);/*子窗最多可放大次数*/
-	i32 wnd_count = 0;
-	i32 wnd_scale_size;
-	i32 step;
-	i32 w_step_num;
-	i32 h_step_num;
-
-
-	for(c = 0; c <= wnd_max_scale_times; c++)
-	{
-		wnd_scale_size = wnd_size * pow(scale_size, c);
-		//step = train_flag == 1 ? 1 : wnd_scale_size * step_size;
-		w_step_num = (w - wnd_scale_size) / step_size + 1;
-		h_step_num = (h - wnd_scale_size) / step_size + 1;
-		for(i = 0; i < h_step_num; i++)
-		{
-			for(j = 0; j < w_step_num; j++)
-			{
-				sub_wnds[wnd_count].size = wnd_scale_size;
-				sub_wnds[wnd_count].x = i * step_size;
-				sub_wnds[wnd_count].y = j * step_size;
-				sub_wnds[wnd_count].src_img = im;
-				wnd_count++;
-			}
-		}
-	}
-	
-	assert(wnd_count == sub_wnd_num);
-	*wnd_num = sub_wnd_num;
-
-	return sub_wnds;
-}
-
-
-/*
-功能：检测后处理，对检测窗进行进一步筛选，剔除掉虚警和重复检测
-*/
-
-
-
-/*
-功能：释放模型
-*/
-void free_model(Model *model)
+i8 face_skin_test()
 {
 
-}
-
-
-/*
-功能：计算图像中可能包含的子窗数目
-*/
-i32 calc_sub_wnd_num(i32 w, i32 h, i32 wnd_size, float scale_size, i32 step_size)
-{
-	float wnd_max_scale_up = MIN(w * 1.0 / wnd_size, h * 1.0 / wnd_size);/*子窗最大可放大倍数*/
-	i32 wnd_max_scale_times = log(wnd_max_scale_up) / log(scale_size);/*子窗最多可放大次数*/
-	i32 i;
-	i32 wnd_num = 0;
-	
-	for(i = 0; i  <= wnd_max_scale_times; i++)
-	{
-		i32 wnd_scale_size = wnd_size * pow(scale_size, i);
-		//i32 step = train_flag == 1 ? 1 : wnd_scale_size * step_size;
-		i32 nw = (w - wnd_scale_size) / step_size + 1;
-		i32 nh = (h - wnd_scale_size) / step_size + 1;
-		wnd_num += nw * nh;
-	}	
-	
-	return wnd_num;
-}
-
-
-/*
-功能：检测一副图像，并画上检测框
-参数：im-待检测图像
-     model-检测用到的模型
-返回值：检测框数目
-备注：对图像中的目标进行检测，并在图像上画出检测框
-*/
-i32 detect(image im, Model *model)
-{
-	image im_gray;
-	i32 wnd_num;
-	i32 i;
-	i32 count = 0;
-
-	times("detect beg\n");
-	if(3 == im.c)
-	{
-		im_gray = rgb_to_grayscale(im);
-	}
-	else
-	{
-		im_gray = im;
-	}
-	
-	Train_example *examples = scan_image(model, im_gray, &wnd_num, 24, 1.5, 2);
-
-	for(i = 0; i < wnd_num; i++)
-	{
-		if(examples[i].predict_label == 1)
-		{
-			draw_box(im, examples[i].x, examples[i].y, examples[i].size, examples[i].size, 255, 0, 0);
-			count++;
-		}
-	}
-	printf("wnd_num:%d\n", wnd_num);
-	printf("count:%d\n", count);
-
-	times("detect end\n");
-
-	free_image(im_gray);
-
-	scale_image(im, 1.0/255);
-
-	show_image(im, "test", 500000);
-}
-
-
-/*
-功能：寻求假正样本
-备注：对应论文An Analysis of the Viola-Jones Face Detection Algorithm中的算法7
-	 出于内存的限制，实现上有些改动
-*/
-Train_example *scratch_for_FP(Model *model, image im, i32 *wnd_num, i32 wnd_size, float scale_size, i32 step_size)
-{
-	i32 i;
-
-	/*生成图像中所有子窗*/
-	Train_example *examples = get_sub_wnd(im, wnd_num, wnd_size, scale_size, step_size);
-
-	//scale_image(examples[0].src_img, 1.0/255);
-	//show_image(examples[0].src_img, "test", 5000000);
-
-	#pragma omp parallel for
-	for(i = 0; i < *wnd_num; i++)
-	{
-		float mean, var;
-		image cropped = crop_image_extend(examples[i].src_img, examples[i].y, examples[i].x, examples[i].size, examples[i].size);
-	    mean = calc_im_mean(cropped);
-	    var = calc_im_var(cropped, mean);
-	    if(var < 1)
-	    {
-	    	free_image(cropped);
-			examples[i].predict_label = -1;
-	    }
-	    else
-   		{
-			image integ = normalize_integral_image(cropped, mean, var);
-			if(1 == model_func(model, integ))
-			{
-				if(examples[i].size > wnd_size)
-				{
-					image cropped_small = down_sample(cropped, wnd_size);
-					free_image(integ);
-					integ = make_intergral_image(cropped_small);
-					free_image(cropped_small);
-					if(1 == model_func(model, integ))
-					{
-						examples[i].predict_label = 1;
-						examples[i].integ = integ;
-					}
-					else
-					{
-						examples[i].predict_label = -1;
-						free_image(integ);
-					}
-				}
-				else/*examples[i].size == wnd_size*/
-				{
-					examples[i].predict_label = 1;
-					examples[i].integ = integ;
-				}
-			}
-			else
-			{
-				free_image(integ);
-				examples[i].predict_label = -1;
-			}
-
-   			free_image(cropped);
-   		}
-	}
-
-	return examples;
 }

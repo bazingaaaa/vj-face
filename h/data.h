@@ -18,6 +18,15 @@ typedef struct training_example
 
 typedef struct
 {
+	i32 pos_i;
+	i32 pos_j;
+	i32 size;
+	image integ;
+}Sub_wnd;
+
+
+typedef struct
+{
 	float feat_val;
 	float weight;
 	i32 label;

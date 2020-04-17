@@ -30,13 +30,12 @@ float test_model(Model *m, Train_example *examples, i32 example_num);
 void make_predictions(Model *m, Train_example *examples, i32 example_num);
 i32 screen_examples(Train_example *examples, i32 example_num);
 i8 model_func(Model *m, image integ);
-Model *attentional_cascade(Data t_pos_data, Data v_pos_data, Data t_neg_data, Data v_neg_data, i32 wnd_size, float fpr_overall, float fpr_perlayer, float fnr_perlayer);
-i32 calc_sub_wnd_num(i32 w, i32 h, i32 wnd_size, float scale_size, i32 step_size);
-Train_example *get_sub_wnd(image im, i32 *wnd_num, i32 wnd_size, float scale_size, i32 step_size);
-i32 detect(image im, Model *model);
+Model *attentional_cascade(Model *model, Data t_pos_data, Data v_pos_data, Data t_neg_data, Data v_neg_data, i32 wnd_size, float fpr_overall, float fpr_perlayer, float fnr_perlayer);
+i32 run_detection(image im, Model *model);
 float test_model(Model *m, Train_example *examples, i32 example_num);
-Train_example *scan_image(Model *model, image im, i32 *wnd_num, i32 wnd_size, float scale_size, i32 step_size);
-Train_example *scratch_for_FP(Model *model, image im, i32 *wnd_num, i32 wnd_size, float scale_size, i32 step_size);
+void scan_image(std::vector<Sub_wnd> &candidate, Model *model, image im, i32 wnd_size, float scale_size, i32 step_size);
+Train_example *scratch_for_FP_(Data data, Model *model, i32 example_num, i32 wnd_size, float scale_size, i32 step_size);
+void scan_image_for_training(std::vector<Sub_wnd> &candidate, Model *model, image im, i32 wnd_size, float scale_size, i32 step_size);
 
 
 /*utils.h*/

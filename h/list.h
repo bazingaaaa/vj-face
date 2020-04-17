@@ -11,14 +11,14 @@ typedef struct list{
     int size;
     node *front;
     node *back;
-} list;
+} List;
 
 
-list *make_list();
-int list_find(list *l, void *val);
-void list_insert(list *, void *);
-void free_list_contents(list *l);
-void **list_to_array(list *l);
-void free_list(list *l);
+List *make_list();
+int list_find(List *l, void *val);
+void list_insert(List *, void *);
+void free_list_contents(List *l);
+void **list_to_array(List *l);
+void free_list(List *l);
 
 #endif
