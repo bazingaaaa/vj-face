@@ -8,10 +8,9 @@
 #include "proto.h"
 #include "list.h"
 #include <vector>
-
+#include "connectedComponent.h"
 
 using namespace std;
-
 
 /*
 功能：模型加载
@@ -162,36 +161,138 @@ float test_model(Model *m, Train_example *examples, i32 example_num)
 
 
 /*
-功能：对样本中的真阴性的样本进行剔除
-返回值：移除的真阴性样本数
-备注：
+功能：判断窗口1的中心是否位于窗口2中
+参数：
+返回值：1-是 0-否
 */
-i32 screen_examples(Train_example *examples, i32 example_num)
+i32 is_inside(Sub_wnd w1, Sub_wnd w2)
 {
-	i32 count = 0;
-	i32 i;
+	i32 ret = 0;
+	float center_i = w1.pos_i + w1.size / 2.0;
+	float center_j = w1.pos_j + w1.size / 2.0;
 
-	for(i = example_num - 1; i >=0; i--)
+	if(center_i > w2.pos_i && center_i < w2.pos_i + w2.size &&
+		center_i > w2.pos_i && center_i < w2.pos_i + w2.size)
 	{
-		if(examples[i].predict_label == -1 && examples[i].label == -1)/*真阴性样本*/
-		{
-			free_image(examples[i].integ);
-			free_image(examples[i].integ);
-			memcpy(&examples[i], &examples[example_num - 1], sizeof(Train_example));
-			example_num--;
-			count++;
-		}
+		ret = 1;
 	}
-	return count;
+	return ret;
 }
 
 
 /*
 功能：检测后处理，对检测窗进行进一步筛选，剔除掉虚警和重复检测
+参数：candidate-通过模型检测出来的图像中的候选窗口
+     confidence_thresh-置信度门限，即 连通分量的数量 / 窗口大小
+备注：对应论文An Analysis of the Viola-Jones Face Detection Algorithm中的算法11
+     此处用到了connected component算法（Ali Rahimi提供）
 */
-void post_processing()
+void post_processing(vector<Sub_wnd> &candidate, i32 w, i32 h, float confidence_thresh)
 {
+	i32 component_num = 0;
+	i32 wnd_num = candidate.size();
+	i32 *in_img = (i32*)calloc(w * h, sizeof(i32));
+	i32 i, j;
 
+	/*用检测窗大小对输入的图像进行初始化*/
+	for(i = 0; i < wnd_num; i++)
+	{
+		in_img[candidate[i].pos_i * w + candidate[i].pos_j] = candidate[i].size;
+	}
+
+	/*执行connected component算法*/
+	i32 *out_img = (i32*)calloc(w * h, sizeof(i32));
+	ConnectedComponents cc(30);
+	component_num = cc.connected(in_img, out_img, w, h, equal_to<int>(), true);
+	
+	/*建立连通分量id，坐标和窗口大小的对应关系，有算法生成的连通分量ID是从0开始的连续整数*/
+	vector<int> cc_labels(out_img, out_img + w * h);
+
+	/*对标记过的窗口进行排序，并确定每个连通分量的大小和对应的ID*/
+	sort(cc_labels.begin(), cc_labels.end());
+
+	vector<int> cc_ids;/*每种连通分量的ID*/
+	vector<int> cc_size;/*每种连通分量的大小*/
+	cc_ids.push_back(cc_labels[0]);
+	cc_size.push_back(1);
+	i32 cur_cc_id = cc_labels[0];
+	i32 cc_id_idx = 0;
+	/*每个连通分量仅保留一个窗口作为代表*/
+	for(i = 1; i < w * h; i++) 
+	{
+        if(cur_cc_id != cc_labels[i])
+        {
+        	cc_ids.push_back(cc_labels[i]);
+			cc_size.push_back(1);
+			cc_id_idx++;
+			cur_cc_id = cc_labels[i];
+        }
+        else
+		{
+            cc_size[cur_cc_id]++;
+		}
+    }
+
+	/*找到代表窗口和其相应的置信度*/
+	vector<bool> flags;
+	flags.resize(component_num);
+	for(i = 0; i < component_num; i++)
+		flags[i] = true;
+	vector<Sub_wnd> representatives;
+	vector<float> confidence_tab;
+
+	for(int k = 0; k < wnd_num; k++){
+		i32 cc_id = out_img[candidate[k].pos_i * w + candidate[k].pos_j];
+		if(flags[cc_id])
+		{
+			for(i = 0; cc_ids[i] != cc_id; i++)
+			{}
+			int size = cc_size[i];
+			if(size >= candidate[k].size * confidence_thresh)
+			{
+				representatives.push_back(candidate[k]);
+				confidence_tab.push_back((float)size/candidate[k].size);
+			}
+			flags[cc_id] = false;
+		}
+	}	
+	
+	/*对重叠的窗口进行剔除*/
+	i32 nRepresentatives = representatives.size();
+	flags.resize(nRepresentatives);
+
+	for(i = 0; i < nRepresentatives; i++)
+	{
+		flags[i] = true;
+	}
+
+	for(i = 0; i < nRepresentatives; i++)
+	{
+		for(j = i + 1; j < nRepresentatives; j++)
+		{
+			if(flags[j] && is_inside(representatives[i], representatives[j]))
+			{
+				if(confidence_tab[i] > confidence_tab[j])
+				{
+					flags[j] = false;
+				}
+				else
+				{
+					flags[i] = false;
+					break;
+				}
+			}
+		}
+	}
+
+	candidate.resize(0);
+	for(i = 0; i < nRepresentatives; i++)
+	{
+		if(flags[i])
+		{
+			candidate.push_back(representatives[i]);
+		}
+	}
 }
 
 
@@ -217,12 +318,14 @@ i32 run_detection(image im, Model *model)
 	i32 wnd_num;
 	i32 i;
 	i32 count = 0;
+	bool is_color_image;
 	vector<Sub_wnd> candidate;
 
 	times("detect beg\n");
 	if(3 == im.c)
 	{
 		im_gray = rgb_to_grayscale(im);
+		is_color_image = 1;
 	}
 	else
 	{
@@ -230,15 +333,26 @@ i32 run_detection(image im, Model *model)
 	}
 	
 	/*扫描整个图像，产生候选窗*/
+	times("scan_image begin");
  	scan_image(candidate, model, im_gray, 24, 1.5, 1);
+	printf("before post_processing detection count:%d\n", candidate.size());
+	times("scan_image end");
 	
+	/*后处理，进一步剔除false positive*/
+	times("post_processing begin");
+	post_processing(candidate, im_gray.w, im_gray.h, 3.0 / 24);
+	printf("after post_processing detection count:%d\n", candidate.size());
+	times("post_processing end");
+
+	/*画出检测框*/
 	for(i = 0; i < candidate.size(); i++)
 	{
+		if(is_color_image && !skin_test(im, candidate[i]))
+		{
+			continue;
+		}
 		draw_box(im, candidate[i].pos_i, candidate[i].pos_j, candidate[i].size, candidate[i].size, 255, 0, 0);
 	}
-
-	printf("detection count:%d\n", candidate.size());
-
 
 	free_image(im_gray);
 	
@@ -637,12 +751,45 @@ Model *attentional_cascade(Model *model, Data t_pos_data, Data v_pos_data, Data 
 
 
 /*
+功能：检查该像素是否属于皮肤
+参数：r-红色通道像素值
+     g-绿色通道像素值
+     b-蓝色通道像素值
+返回值：1-是
+       0-否
+*/
+bool is_skin_pixel(float r, float g, float b)
+{
+	int diff = max(r, max(g, b))- min(r, min(g, b));
+	return r > 95 && g > 40 && b > 20 && r > g && r > b && r - g > 15 && diff > 15;
+}
+
+
+/*
 功能：人脸肤色检查
 返回值：1-通过检查
 	   0-未通过检查
 备注：只能在处理彩色图片时候使用
 */
-i8 face_skin_test()
+i8 skin_test(image src, Sub_wnd wnd)
 {
+	i32 counter = 0;
+	i32 i_origin = wnd.pos_i;
+	i32 j_origin = wnd.pos_j;
+	i32 i, j;
 
+	for(i = 0; i < wnd.size; i++)
+	{
+		for(j = 0; j < wnd.size; j++)
+		{
+			i32 i_embed = i_origin + i;
+			i32 j_embed = j_origin + j;
+			i32 pixel_idx = i_embed * src.w + j_embed;
+			if(is_skin_pixel(src.data[pixel_idx], src.data[pixel_idx + src.w * src.h], src.data[pixel_idx + 2 * src.w * src.h]))
+			{
+				counter++;
+			}
+		}
+	}
+	return (float)counter / (wnd.size * wnd.size) > 0.4;
 }

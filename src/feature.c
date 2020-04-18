@@ -4,10 +4,11 @@
 #include "feature.h"
 
 /*
-功能：计算指定窗口内的haar特征数量
+功能：计算指定大小窗口内的haar特征数量
 参数：wndSize-窗口大小（正方形）
 	 featW-特征矩形宽度
 	 featH-特征矩形高度
+返回值：Haar-like特征数量
 */
 u32 calc_haar_feat_num(u16 wndSize, u16 w, u16 h)
 {

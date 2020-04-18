@@ -18,6 +18,8 @@ typedef struct training_example
 
 typedef struct
 {
+	float confidence;
+	i32 cc_id;
 	i32 pos_i;
 	i32 pos_j;
 	i32 size;
