@@ -1,0 +1,9 @@
+window_size = 24  
+train_positive = ./train_pos.list 
+train_negative = ./train_neg.list 
+validation_positive = ./vali_pos.list
+validation_negative = ./vali_neg.list
+backup = ./backup 
+fnr_perstage = 0.005 
+fpr_perstage = 0.5 
+fpr_overall = 0.0000001

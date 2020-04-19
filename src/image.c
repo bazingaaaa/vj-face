@@ -4,8 +4,13 @@
 #include "classifier.h"
 #include "model.h"
 #include "data.h"
+#include <vector>
+#include "math.h"
+#include "list.h"
 #include "proto.h"
 
+
+static void add_pixel(image m, int x, int y, int c, float val);
 
 
 /*
@@ -424,4 +429,85 @@ void scale_image(image m, float s)
 {
     int i;
     for(i = 0; i < m.h*m.w*m.c; ++i) m.data[i] *= s;
+}
+
+
+/*
+功能：限制图片大小
+备注：使用billinear插值法
+*/
+image constrain_image_size(image im, i32 size_limit)
+{
+    if(im.w <= size_limit && im.h <= size_limit)
+    {
+        return im;
+    }
+    else if(im.w > im.h)
+    {
+        image resized = resize_image(im, size_limit, (float)im.h * size_limit / im.w);
+        free_image(im);
+        return resized;
+    }
+    else
+    {
+        image resized = resize_image(im, (float)im.w * size_limit / im.h, size_limit);
+        free_image(im);
+        return resized;
+    }
+}
+
+
+
+/*
+功能：调整图像大小
+*/
+image resize_image(image im, int w, int h)
+{
+    image resized = make_image(w, h, im.c);   
+    image part = make_image(w, im.h, im.c);
+    int r, c, k;
+    float w_scale = (float)(im.w - 1) / (w - 1);
+    float h_scale = (float)(im.h - 1) / (h - 1);
+    for(k = 0; k < im.c; ++k){
+        for(r = 0; r < im.h; ++r){
+            for(c = 0; c < w; ++c){
+                float val = 0;
+                if(c == w-1 || im.w == 1){
+                    val = get_pixel(im, im.w-1, r, k);
+                } else {
+                    float sx = c*w_scale;
+                    int ix = (int) sx;
+                    float dx = sx - ix;
+                    val = (1 - dx) * get_pixel(im, ix, r, k) + dx * get_pixel(im, ix+1, r, k);
+                }
+                set_pixel(part, c, r, k, val);
+            }
+        }
+    }
+    for(k = 0; k < im.c; ++k){
+        for(r = 0; r < h; ++r){
+            float sy = r*h_scale;
+            int iy = (int) sy;
+            float dy = sy - iy;
+            for(c = 0; c < w; ++c){
+                float val = (1-dy) * get_pixel(part, c, iy, k);
+                set_pixel(resized, c, r, k, val);
+            }
+            if(r == h-1 || im.h == 1) continue;
+            for(c = 0; c < w; ++c){
+                float val = dy * get_pixel(part, c, iy+1, k);
+                add_pixel(resized, c, r, k, val);
+            }
+        }
+    }
+
+    free_image(part);
+    return resized;
+}
+
+
+static void add_pixel(image m, int x, int y, int c, float val)
+{
+    assert(x < m.w && y < m.h && c < m.c);
+    m.data[c*m.h*m.w + y*m.w + x] += val;
 }

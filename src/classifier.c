@@ -4,6 +4,8 @@
 #include "classifier.h"
 #include "model.h"
 #include "data.h"
+#include <vector>
+#include "list.h"
 #include "proto.h"
 #include <math.h>
 

@@ -29,13 +29,15 @@ Model *load_model(const char* path);
 float test_model(Model *m, Train_example *examples, i32 example_num);
 void make_predictions(Model *m, Train_example *examples, i32 example_num);
 i8 model_func(Model *m, image integ);
-Model *attentional_cascade(Model *model, Data t_pos_data, Data v_pos_data, Data t_neg_data, Data v_neg_data, i32 wnd_size, float fpr_overall, float fpr_perlayer, float fnr_perlayer);
-i32 run_detection(image im, Model *model);
+Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data v_pos_data, Data t_neg_data, Data v_neg_data, i32 wnd_size, float fpr_overall, float fpr_perstage, float fnr_perstage);
+i32 run_detection(image im, Model *model, i32 skin_test_flag, char *savepath);
 float test_model(Model *m, Train_example *examples, i32 example_num);
-void scan_image(std::vector<Sub_wnd> &candidate, Model *model, image im, i32 wnd_size, float scale_size, i32 step_size);
-Train_example *scratch_for_FP_(Data data, Model *model, i32 example_num, i32 wnd_size, float scale_size, i32 step_size);
+void scan_image_for_testing(std::vector<Sub_wnd> &candidate, Model *model, image im, i32 wnd_size, float scale_size, i32 step_size);
 void scan_image_for_training(std::vector<Sub_wnd> &candidate, Model *model, image im, i32 wnd_size, float scale_size, i32 step_size);
+Train_example *collect_false_positives(Data data, Model *model, i32 example_num, i32 wnd_size, float scale_size, i32 step_size);
 i8 skin_test(image src, Sub_wnd wnd);
+void free_model(Model *model, i32 is_load_model);
+i32 get_detect_wnd_size(Model *model);
 
 
 /*utils.h*/
@@ -57,6 +59,15 @@ void free_image_data(Data data);
 /*utils.h*/
 int constrain_int(int a, int min, int max);
 void times(const char * which);
+char *find_char_arg(int argc, char **argv, char *arg, char *def);
+int find_int_arg(int argc, char **argv, char *arg, int def);
+char *fgetl(FILE *fp);
+void strip(char *s);
+char *option_find(List *l, char *key);
+char *option_find_str(List *l, char *key, char *def);
+int option_find_int(List *l, char *key, int def);
+List *read_data_cfg(char *filename);
+float option_find_float(List *l, char *key, float def);
 
 
 #endif

@@ -2,6 +2,7 @@
 #include "const.h"
 #include "image.h"
 #include "feature.h"
+#include "stdlib.h"
 
 /*
 功能：计算指定大小窗口内的haar特征数量
@@ -26,14 +27,14 @@ u32 calc_haar_feat_num(u16 wndSize, u16 w, u16 h)
 功能：填写haar特征参数，记录特征信息
 备注：x为垂直方向，y为水平方向
 */
-void make_haar_feat(Haar_feat *pFeat, u8 type, u16 i, u16 j, u16 w, u16 h, u16 srcWndSize)
+void make_haar_feat(Haar_feat *pFeat, u8 type, u16 i, u16 j, u16 w, u16 h, u16 src_wnd_size)
 {
 	pFeat->type = type;
 	pFeat->i = i;
 	pFeat->j = j;
 	pFeat->w = w;
 	pFeat->h = h;
-	pFeat->srcWndSize = srcWndSize;
+	pFeat->src_wnd_size = src_wnd_size;
 }
 
 
@@ -100,15 +101,15 @@ float calc_featE_val(image integ, i32 i, i32 j, i32 w, i32 h)
 float calc_haar_feat_val(image integ, Haar_feat *pFeat)
 {
 	float ret = 0;
-	if(!(pFeat->srcWndSize != 0 && pFeat->srcWndSize <= integ.w))
+	if(!(pFeat->src_wnd_size != 0 && pFeat->src_wnd_size <= integ.w))
 	{
-		printf("pFeat->srcWndSize:%d\n w:%d h:%d\n", pFeat->srcWndSize, integ.w, integ.h);
+		printf("pFeat->src_wnd_size:%d\n w:%d h:%d\n", pFeat->src_wnd_size, integ.w, integ.h);
 		assert(0);
 	}
-	//assert(pFeat->srcWndSize != 0 && pFeat->srcWndSize <= integ.w);
+	//assert(pFeat->src_wnd_size != 0 && pFeat->src_wnd_size <= integ.w);
 	i32 i = pFeat->i, j = pFeat->j, w = pFeat->w, h = pFeat->h, a;
 	i32 e = integ.w;
-	i32 s = pFeat->srcWndSize;
+	i32 s = pFeat->src_wnd_size;
 
 	switch(pFeat->type)
 	{

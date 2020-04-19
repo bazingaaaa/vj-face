@@ -5,9 +5,9 @@
 #include "classifier.h"
 #include "model.h"
 #include "data.h"
-#include "proto.h"
-#include "list.h"
 #include <vector>
+#include "list.h"
+#include "proto.h"
 #include "connectedComponent.h"
 
 using namespace std;
@@ -26,7 +26,7 @@ Model *load_model(const char* path)
 
 	if(NULL == fp)/*错误文件*/
 	{
-		printf("%s doesn't exist!\n", path);
+		printf("modelfile doesn't exist!\n");
 		return NULL;
 	}
 	fread(&ch, sizeof(char), 1, fp);
@@ -119,6 +119,8 @@ i8 save_model(Model *m, const char* path)
 功能：模型推断函数
 参数：m-模型
 	 integ-模型输入（积分图像）
+返回值：1-正样本
+      -1-负样本
 */
 i8 model_func(Model *m, image integ)
 {
@@ -233,14 +235,13 @@ void post_processing(vector<Sub_wnd> &candidate, i32 w, i32 h, float confidence_
 		}
     }
 
-	/*找到代表窗口和其相应的置信度*/
+	/*去掉置信度较低的连通分量*/
 	vector<bool> flags;
 	flags.resize(component_num);
 	for(i = 0; i < component_num; i++)
 		flags[i] = true;
 	vector<Sub_wnd> representatives;
 	vector<float> confidence_tab;
-
 	for(int k = 0; k < wnd_num; k++){
 		i32 cc_id = out_img[candidate[k].pos_i * w + candidate[k].pos_j];
 		if(flags[cc_id])
@@ -285,6 +286,7 @@ void post_processing(vector<Sub_wnd> &candidate, i32 w, i32 h, float confidence_
 		}
 	}
 
+	/*收集剩余的检测窗*/
 	candidate.resize(0);
 	for(i = 0; i < nRepresentatives; i++)
 	{
@@ -293,15 +295,54 @@ void post_processing(vector<Sub_wnd> &candidate, i32 w, i32 h, float confidence_
 			candidate.push_back(representatives[i]);
 		}
 	}
+
+	free(in_img);
+	free(out_img);
 }
 
 
 /*
 功能：释放模型占用的内存
 */
-void free_model(Model *model)
+void free_model(Model *model, i32 is_load_model)
 {
-
+	if(NULL == model)
+	{
+		return;
+	}
+	if(1 == is_load_model)/*是加载的模型*/
+	{
+		i32 i;
+		Stage *stage = model->head_stage;
+		for(i = 0; i < model->stage_num; i++)
+		{
+			free(stage->head_stump);
+			stage = stage->next_stage;
+		}
+		free(stage);
+	}
+	else/*非加载的模型*/
+	{
+		Stage *cur_stage = model->head_stage;
+		Stage *next_stage = cur_stage->next_stage;
+		while(cur_stage)
+		{
+			Stump *cur_stump = cur_stage->head_stump;
+			Stump *next_stump = cur_stump->next_stump;
+			while(cur_stump)
+			{
+				free(cur_stump);
+				cur_stump = next_stump;
+				if(cur_stump != NULL)
+				next_stump = cur_stump->next_stump;
+			}
+			free(cur_stage);
+			cur_stage = next_stage;
+			if(cur_stage != NULL)
+			next_stage = cur_stage->next_stage;
+		}
+	}
+	free(model);
 }
 
 
@@ -309,58 +350,76 @@ void free_model(Model *model)
 功能：检测一副图像，并画上检测框
 参数：im-待检测图像
      model-检测用到的模型
+     skin_test_flag-是否进行肤色检测
+     savepath-图像检测后的保存路径
 返回值：检测框数目
 备注：对图像中的目标进行检测，并在图像上画出检测框
 */
-i32 run_detection(image im, Model *model)
+i32 run_detection(image im, Model *model, i32 skin_test_flag, char *savepath)
 {
 	image im_gray;
-	i32 wnd_num;
+	i32 is_gray_image = 0;
 	i32 i;
 	i32 count = 0;
-	bool is_color_image;
 	vector<Sub_wnd> candidate;
+	if(NULL == model)
+	{
+		return 0;
+	}
+	i32 wnd_size = get_detect_wnd_size(model);
 
-	times("detect beg\n");
+	/*如果图像过大（长和宽限制在512以内，保证一定的横纵比），对图像进行resize*/
+ 	im = constrain_image_size(im, 512);
+
+	/*彩色图像转换为灰度图像再进行检测*/
 	if(3 == im.c)
 	{
 		im_gray = rgb_to_grayscale(im);
-		is_color_image = 1;
 	}
 	else
 	{
+		is_gray_image = 1;
 		im_gray = im;
 	}
 	
+	times("scan_image begin ");
 	/*扫描整个图像，产生候选窗*/
-	times("scan_image begin");
- 	scan_image(candidate, model, im_gray, 24, 1.5, 1);
-	printf("before post_processing detection count:%d\n", candidate.size());
-	times("scan_image end");
+ 	scan_image_for_testing(candidate, model, im_gray, wnd_size, 1.5, 1);
 	
 	/*后处理，进一步剔除false positive*/
-	times("post_processing begin");
-	post_processing(candidate, im_gray.w, im_gray.h, 3.0 / 24);
-	printf("after post_processing detection count:%d\n", candidate.size());
-	times("post_processing end");
+	post_processing(candidate, im_gray.w, im_gray.h, 3.0 / wnd_size);
 
-	/*画出检测框*/
+	/*在被检测图像上画出检测框*/
 	for(i = 0; i < candidate.size(); i++)
 	{
-		if(is_color_image && !skin_test(im, candidate[i]))
+		if(skin_test_flag && !skin_test(im, candidate[i]))/*舍弃未能通过皮肤测试的检测框*/
 		{
 			continue;
 		}
-		draw_box(im, candidate[i].pos_i, candidate[i].pos_j, candidate[i].size, candidate[i].size, 255, 0, 0);
+		count++;
+		draw_box(im, candidate[i].pos_i, candidate[i].pos_j, candidate[i].size, candidate[i].size, 0, 255, 0);
+	}
+
+	printf("detection count:%d\n", count);
+	times("scan_image end ");
+	
+
+	scale_image(im, 1.0/255);
+#ifdef OPENCV
+	show_image(im, "test", 500000);
+#endif
+
+	if(NULL != savepath)
+	{
+		save_image(im, savepath);
 	}
 
 	free_image(im_gray);
-	
-	times("detect end\n");
-
-	scale_image(im, 1.0/255);
-
-	show_image(im, "test", 500000);
+	if(!is_gray_image)
+	{
+		free_image(im);
+	}
+	return count;
 }
 
 
@@ -369,7 +428,7 @@ i32 run_detection(image im, Model *model)
 备注：对应论文An Analysis of the Viola-Jones Face Detection Algorithm中的算法7
      该函数只用于对图像的检测，训练时不需要使用
 */
-void scan_image(vector<Sub_wnd> &candidate, Model *model, image im, i32 wnd_size, float scale_size, i32 step_size)
+void scan_image_for_testing(vector<Sub_wnd> &candidate, Model *model, image im, i32 wnd_size, float scale_size, i32 step_size)
 {
 	i32 ij;
 	i32 w = im.w, h = im.h;
@@ -496,7 +555,7 @@ void scan_image_for_training(vector<Sub_wnd> &candidate, Model *model, image im,
 备注：对应论文An Analysis of the Viola-Jones Face Detection Algorithm中的算法10
 	 可以持续训练
 */
-Model *attentional_cascade(Model *model, Data t_pos_data, Data v_pos_data, Data t_neg_data, Data v_neg_data, i32 wnd_size, float fpr_overall, float fpr_perlayer, float fnr_perlayer)
+Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data v_pos_data, Data t_neg_data, Data v_neg_data, i32 wnd_size, float fpr_overall, float fpr_perstage, float fnr_perstage)
 {
 	i32 l = 0;
 	Stage *tail_stage = NULL;
@@ -537,12 +596,10 @@ Model *attentional_cascade(Model *model, Data t_pos_data, Data v_pos_data, Data 
 	
 
 	/*获取正训练样本*/
-	prepare_pos_examples(t_pos_data);
-	prepare_pos_examples(v_pos_data);
 	Train_example *t_pos = make_pos_example(t_pos_data);
-	printf("make train pos example finish\n");	
+	//printf("make train pos example finish\n");	
 	Train_example *v_pos = make_pos_example(v_pos_data);
-	printf("make valid pos example finish\n");	
+	//printf("make valid pos example finish\n");	
 
 	/*收集初始的训练和验证所用的负样本*/
 	Train_example *t_neg = make_neg_example(t_neg_data, 1, t_neg_num, wnd_size, NULL, 0, 0, 0);
@@ -557,7 +614,7 @@ Model *attentional_cascade(Model *model, Data t_pos_data, Data v_pos_data, Data 
 		float fpr_v = 1 - test_model(model, v_neg, v_neg_num);/*训练集的假阳性率*/
 		/*评估当前模型的fpr*/
 		fpr = max(fpr_t, fpr_v);
-		printf("stage:%d fpr:%f\n", model->stage_num, fpr);
+		printf("initial model: stage_num:%d fpr:%f\n", model->stage_num, fpr);
 		/*更换当前模型首次用到的假阳性样本*/
 		times("replenish examples beg\n");
 		/*重新收集负样本的训练集和验证集*/
@@ -629,11 +686,11 @@ Model *attentional_cascade(Model *model, Data t_pos_data, Data v_pos_data, Data 
 		//printf("layer:%d stump_num:%d s_l:%f u:%f\n", l, new_stage->stump_num, s_l, u);
 		//printf("training set: fnr:%f fpr:%f\nvalidationset fnr:%f fpr:%f\n", fnr_e, fpr_e, fnr_g, fpr_g);
 
-		if(fpr_r <= fpr_perlayer && fnr_r <= fnr_perlayer)
+		if(fpr_r <= fpr_perstage && fnr_r <= fnr_perstage)
 		{
 			fpr = fpr * fpr_r;
 		}
-		else if(fpr_r <= fpr_perlayer && fnr_r > fnr_perlayer && u > 10e-5)
+		else if(fpr_r <= fpr_perstage && fnr_r > fnr_perstage && u > 10e-5)
 		{	
 			s_l = s_l + u;
 			s_obesrver[tweak_counter % 2] = 1;
@@ -648,7 +705,7 @@ Model *attentional_cascade(Model *model, Data t_pos_data, Data v_pos_data, Data 
 			opt_case = 2;
 			continue;
 		}
-		else if(fpr_r > fpr_perlayer && fnr_r <= fnr_perlayer && u > 10e-5)
+		else if(fpr_r > fpr_perstage && fnr_r <= fnr_perstage && u > 10e-5)
 		{	
 			s_l = s_l - u;
 			s_obesrver[tweak_counter % 2] = -1;
@@ -697,13 +754,14 @@ Model *attentional_cascade(Model *model, Data t_pos_data, Data v_pos_data, Data 
 		}
 		opt_case = 0;
 		printf("add one stage\n");
-		printf("layer:%d stump_num:%d s_l:%f u:%f\n", l, new_stage->stump_num, s_l, u);
-		printf("fpr:%f fnr_r:%f fpr_r:%f\n", fpr, fnr_r, fpr_r);
+		printf("stage:%d stump_num:%d shift:%f unit:%f\n", l, new_stage->stump_num, s_l, u);
+		printf("current model: fpr:%f\n", fpr);
+		printf("current stage: fnr:%f and fpr:%f\n", fpr_r, fnr_r);
 
 		if(l % 1 == 0)/*每一层保存一次模型*/
 		{
 			char buf[100];
-			i32 len = sprintf(buf, "./backup/attentional_cascade_%d.cfg", l);
+			i32 len = sprintf(buf, "%s/attentional_cascade_%d.cfg", save_path, l);
 			buf[len] = 0;
 			printf("save model stage:%d\n", l);
 			save_model(model, buf);
@@ -739,13 +797,7 @@ Model *attentional_cascade(Model *model, Data t_pos_data, Data v_pos_data, Data 
 	free(t_neg);
 	free(v_neg);
 	free(examples);
-
-	/*释放图片数据*/
-	free_image_data(t_pos_data);
-	free_image_data(t_neg_data);
-	free_image_data(v_pos_data);
-	free_image_data(v_neg_data);
-
+	
 	return model;
 }
 
@@ -792,4 +844,18 @@ i8 skin_test(image src, Sub_wnd wnd)
 		}
 	}
 	return (float)counter / (wnd.size * wnd.size) > 0.4;
+}
+
+
+/*
+功能：获取模型的检测窗大小
+备注：模型训练时所用到的正样本大小是固定的，此处直接获取模型的第一个决策桩中的wnd_size
+*/
+i32 get_detect_wnd_size(Model *model)
+{
+	if(NULL == model)
+	{
+		return 0;
+	}
+	return model->head_stage->head_stump->feat.src_wnd_size;
 }

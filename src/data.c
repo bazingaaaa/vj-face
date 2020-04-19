@@ -5,14 +5,12 @@
 #include "classifier.h"
 #include "model.h"
 #include "data.h"
-#include "proto.h"
-#include "list.h"
-#include <time.h>
 #include <vector>
+#include "list.h"
+#include "proto.h"
+#include <time.h>
 
 using namespace std;
-
-
 
 char *fgetl(FILE *fp);
 
@@ -63,41 +61,6 @@ Data load_image_data(char *images)
     free_list(image_list);
     
     return im_data;
-}
-
-
-/*
-功能：从文件中获取一行
-*/
-char *fgetl(FILE *fp)
-{
-    if(feof(fp)) return 0;
-    size_t size = 512;
-    char *line = (char*)malloc(size*sizeof(char));
-    if(!fgets(line, size, fp)){
-        free(line);
-        return 0;
-    }
-
-    size_t curr = strlen(line);
-
-    while((line[curr-1] != '\n') && !feof(fp)){
-        if(curr == size-1){
-            size *= 2;
-            line = (char*)realloc(line, size*sizeof(char));
-            if(!line) {
-                fprintf(stderr, "malloc failed %ld\n", size);
-                exit(0);
-            }
-        }
-        size_t readsize = size-curr;
-        if(readsize > INT_MAX) readsize = INT_MAX-1;
-        fgets(&line[curr], readsize, fp);
-        curr = strlen(line);
-    }
-    if(line[curr-1] == '\n') line[curr-1] = '\0';
-
-    return line;
 }
 
 
@@ -165,8 +128,8 @@ Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 w
 
     //srand(1);
     if(init_flag == 1 || fpr > 10e-5)/*首次获取样本或者假阳性率较高*/
-    //if(init_flag == 1)
     {
+        /*采用随机截取的方法获取假阳性样本*/
         examples = (Train_example*)malloc(sizeof(Train_example) * example_num);
         while(count < example_num)
         {
@@ -198,7 +161,8 @@ Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 w
     }
     else/*假阳性率极低*/
     {
-        examples = scratch_for_FP_(data, model, example_num, wnd_size, scale_size, step_size);
+        /*依次扫描每张负样本图片获取假阳性样本*/
+        examples = collect_false_positives(data, model, example_num, wnd_size, scale_size, step_size);
     }
    
     return examples;
@@ -224,28 +188,28 @@ Train_example *merge_pos_neg(Train_example *pos, i32 pos_num, Train_example *neg
 Feat_info **make_parallel_examples(i32 example_num, i32 feat_num)
 {
     i32 i;
-    Feat_info **parrel_examples = (Feat_info**)malloc(sizeof(Feat_info*) * feat_num);/*用于并行计算，提高速度*/
+    Feat_info **parallel_examples = (Feat_info**)malloc(sizeof(Feat_info*) * feat_num);/*用于并行计算，提高速度*/
 
     for(i = 0; i < feat_num; i++)
     {
-        parrel_examples[i] = (Feat_info*)malloc(sizeof(Feat_info) * example_num);
+        parallel_examples[i] = (Feat_info*)malloc(sizeof(Feat_info) * example_num);
     }
-    return parrel_examples;
+    return parallel_examples;
 }
 
 
 /*
 功能：释放并行处理的样本内存空间
 */
-void free_parallel_examples(Feat_info **parrel_examples, i32 feat_num)
+void free_parallel_examples(Feat_info **parallel_examples, i32 feat_num)
 {
     i32 i;
 
     for(i = 0; i < feat_num; i++)
     {
-        free(parrel_examples[i]);
+        free(parallel_examples[i]);
     }
-    free(parrel_examples);
+    free(parallel_examples);
 }
 
 
@@ -266,7 +230,7 @@ void free_image_data(Data data)
 /*
 功能：补充假阳性样本
 */
-Train_example *scratch_for_FP_(Data data, Model *model, i32 example_num, i32 wnd_size, float scale_size, i32 step_size)
+Train_example *collect_false_positives(Data data, Model *model, i32 example_num, i32 wnd_size, float scale_size, i32 step_size)
 {
     Train_example *examples = (Train_example*)malloc(sizeof(Train_example) * example_num);
     static i32 im_idx_recorder = 0;/*记录之前收集假阳性样本的图像索引*/
@@ -282,8 +246,6 @@ Train_example *scratch_for_FP_(Data data, Model *model, i32 example_num, i32 wnd
         }
         image im = data.im_array[im_idx_recorder];
         scan_image_for_training(candidate, model, im, wnd_size, scale_size, step_size);
-        //printf("scan_image get :%d positives\n", candidate.size());
-        //times("scan_image_for_training");
         for(i = 0; i < candidate.size(); i++)
         {
             if(count < example_num)

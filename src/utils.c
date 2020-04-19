@@ -3,6 +3,26 @@
 #include <time.h>
 #include <sys/time.h>
 #include <string.h>
+#include "stdlib.h"
+#include "list.h"
+#include <vector>
+#include "feature.h"
+#include "classifier.h"
+#include "model.h"
+#include "data.h"
+#include "proto.h"
+
+
+
+typedef struct{
+    char *key;
+    char *val;
+    int used;
+} kvp;
+
+
+void option_insert(List *l, char *key, char *val);
+int read_option(char *s, list *options);
 
 
 /*
@@ -56,4 +76,248 @@ void times(const char * which)
 	    printf("\n%s", which);
 	    printf("time = %lf seconds, CPU = %lf  seconds\n\n", wall, cpu);
 	}
+}
+
+
+/*
+功能：删除参数
+*/
+void del_arg(int argc, char **argv, int index)
+{
+    int i;
+    for(i = index; i < argc-1; ++i) argv[i] = argv[i+1];
+    argv[i] = 0;
+}
+
+
+/*
+功能：找到并删除参数
+*/
+int find_arg(int argc, char* argv[], char *arg)
+{
+    int i;
+    for(i = 0; i < argc; ++i) {
+        if(!argv[i]) continue;
+        if(0==strcmp(argv[i], arg)) {
+            del_arg(argc, argv, i);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
+/*
+功能：找到指定字符串后的字符串参数
+*/
+char *find_char_arg(int argc, char **argv, char *arg, char *def)
+{
+    int i;
+    for(i = 0; i < argc-1; ++i){
+        if(!argv[i]) continue;
+        if(0==strcmp(argv[i], arg)){
+            def = argv[i+1];
+            del_arg(argc, argv, i);
+            del_arg(argc, argv, i);
+            break;
+        }
+    }
+    return def;
+}
+
+
+/*
+功能：找到指定字符串后的整形参数
+*/
+int find_int_arg(int argc, char **argv, char *arg, int def)
+{
+    int i;
+    for(i = 0; i < argc-1; ++i){
+        if(!argv[i]) continue;
+        if(0==strcmp(argv[i], arg)){
+            def = atoi(argv[i+1]);
+            del_arg(argc, argv, i);
+            del_arg(argc, argv, i);
+            break;
+        }
+    }
+    return def;
+}
+
+
+
+/*
+功能：从文件中获取一行
+*/
+char *fgetl(FILE *fp)
+{
+    if(feof(fp)) return 0;
+    size_t size = 512;
+    char *line = (char*)malloc(size*sizeof(char));
+    if(!fgets(line, size, fp)){
+        free(line);
+        return 0;
+    }
+
+    size_t curr = strlen(line);
+
+    while((line[curr-1] != '\n') && !feof(fp)){
+        if(curr == size-1){
+            size *= 2;
+            line = (char*)realloc(line, size*sizeof(char));
+            if(!line) {
+                fprintf(stderr, "malloc failed %ld\n", size);
+                exit(0);
+            }
+        }
+        size_t readsize = size-curr;
+        if(readsize > INT_MAX) readsize = INT_MAX-1;
+        fgets(&line[curr], readsize, fp);
+        curr = strlen(line);
+    }
+    if(line[curr-1] == '\n') line[curr-1] = '\0';
+
+    return line;
+}
+
+
+/*
+功能：读取数据配置文件
+*/
+List *read_data_cfg(char *filename)
+{
+    FILE *file = fopen(filename, "r");
+    if(file == 0)
+    {
+    	printf("cannot open file %s\n", filename);
+        return NULL;
+    }
+    char *line;
+    int nu = 0;
+    list *options = make_list();
+    while((line=fgetl(file)) != 0){
+        ++ nu;
+        strip(line);
+        switch(line[0]){
+            case '\0':
+            case '#':
+            case ';':
+                free(line);
+                break;
+            default:
+                if(!read_option(line, options)){
+                    fprintf(stderr, "Config file error line %d, could parse: %s\n", nu, line);
+                    free(line);
+                }
+                break;
+        }
+    }
+    fclose(file);
+    return options;
+}
+
+
+/*
+功能：读取选项
+*/
+int read_option(char *s, list *options)
+{
+    size_t i;
+    size_t len = strlen(s);
+    char *val = 0;
+    for(i = 0; i < len; ++i){
+        if(s[i] == '='){
+            s[i] = '\0';
+            val = s+i+1;
+            break;
+        }
+    }
+    if(i == len-1) return 0;
+    char *key = s;
+    option_insert(options, key, val);
+    return 1;
+}
+
+
+/*
+功能：选项插入
+*/
+void option_insert(List *l, char *key, char *val)
+{
+    kvp *p = (kvp*)malloc(sizeof(kvp));
+    p->key = key;
+    p->val = val;
+    p->used = 0;
+    list_insert(l, p);
+}
+
+
+/*
+功能：字符串抽取
+*/
+void strip(char *s)
+{
+    size_t i;
+    size_t len = strlen(s);
+    size_t offset = 0;
+    for(i = 0; i < len; ++i){
+        char c = s[i];
+        if(c==' '||c=='\t'||c=='\n') ++offset;
+        else s[i-offset] = c;
+    }
+    s[len-offset] = '\0';
+}
+
+
+/*
+功能：选项寻找
+*/
+char *option_find(list *l, char *key)
+{
+    node *n = l->front;
+    while(n){
+        kvp *p = (kvp *)n->val;
+        if(strcmp(p->key, key) == 0){
+            p->used = 1;
+            return p->val;
+        }
+        n = n->next;
+    }
+    return 0;
+}
+
+
+/*
+功能：选项寻找，字符串
+*/
+char *option_find_str(List *l, char *key, char *def)
+{
+    char *v = option_find(l, key);
+    if(v) return v;
+    if(def) fprintf(stderr, "%s: Using default '%s'\n", key, def);
+    return def;
+}
+
+
+/*
+功能：选项寻找，整型
+*/
+int option_find_int(List *l, char *key, int def)
+{
+    char *v = option_find(l, key);
+    if(v) return atoi(v);
+    fprintf(stderr, "%s: Using default '%d'\n", key, def);
+    return def;
+}
+
+
+/*
+功能：选项寻找，浮点型
+*/
+float option_find_float(list *l, char *key, float def)
+{
+    char *v = option_find(l, key);
+    if(v) return atof(v);
+    fprintf(stderr, "%s: Using default '%lf'\n", key, def);
+    return def;
 }

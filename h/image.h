@@ -56,6 +56,8 @@ image down_sample(image im, i32 wnd_size);
 void draw_box(image im, i32 x, i32 y, i32 w, i32 h, float r, float g, float b);
 image rgb_to_grayscale(image im);
 void scale_image(image m, float s);
+image resize_image(image im, int w, int h);
+image constrain_image_size(image im, i32 size_limit);
 
 
 #endif
