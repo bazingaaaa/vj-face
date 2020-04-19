@@ -45,6 +45,12 @@ haarcascade框架使用说明
 第二个参数: 模型训练时用到的数据文件路径（下面有数据格式示例）  
 -model 模型配置文件路径，模型支持继续训练，如果需要在先前模型基础上继续训练，可给出先前模型文件路径（可选）  
 
+用法如下：
+
+    ./haarcascade train ./train.data 
+
+
+
 ### 测试阶段
 
 第一个参数: test，代表进行测试  
@@ -52,6 +58,12 @@ haarcascade框架使用说明
 -model 模型配置文件路径（可选，默认加载模型./backup/attentional_cascade_def.cfg）  
 -outfile 测试得到的文件保存路径，可通过opencv直接查看，编译时需配置opencv选项（可选）  
 -skintest 肤色测试开关，1打开  0关闭，测试彩色图像时可以打开，测试灰度图像时需要关闭，默认为关闭（可选） 
+
+用法如下：
+
+     ./haarcascade test ./Users/bazinga/Desktop/daddario.jpg
+
+
 
 ### 训练数据示例
 
@@ -66,6 +78,8 @@ haarcascade框架使用说明
     fpr_overall = 0.0000001  (整体模型的假阳性率训练目标)
 
 训练时用到的正负样本需为灰度图像，且每个正样本图像大小为 window_size x window_size像素，负样本图像大小可以不固定
+
+
 
 # 不足之处
 
