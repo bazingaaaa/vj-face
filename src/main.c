@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 		Model *model = NULL;
     	infile = argv[2];
 
-    	modelfile = find_char_arg(argc, argv, "-model", "./backup/attentional_cascade_def.cfg");
+    	modelfile = find_char_arg(argc, argv, "-model", "./backup/attention_cascade_def.cfg");
     	outfile = find_char_arg(argc, argv, "-outfile", 0);
     	skin_test_flag = find_int_arg(argc, argv, "-skintest", 0);
     	model = load_model(modelfile);

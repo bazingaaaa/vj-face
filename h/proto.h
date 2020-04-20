@@ -38,6 +38,7 @@ Train_example *collect_false_positives(Data data, Model *model, i32 example_num,
 i8 skin_test(image src, Sub_wnd wnd);
 void free_model(Model *model, i32 is_load_model);
 i32 get_detect_wnd_size(Model *model);
+double evaluate_model(Model *model, Train_example *examples, i32 example_num);
 
 
 /*utils.h*/

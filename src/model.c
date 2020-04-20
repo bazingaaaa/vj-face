@@ -37,6 +37,7 @@ Model *load_model(const char* path)
 	}
 
 	fread(&m->stage_num, sizeof(i32), 1, fp);
+	fread(&m->fpr, sizeof(double), 1, fp);
 	Stage *stage = (Stage*)malloc(sizeof(Stage) * m->stage_num);
 	m->head_stage = stage;
 
@@ -92,6 +93,8 @@ i8 save_model(Model *m, const char* path)
 	Stage *stage = m->head_stage;
 
 	fwrite(&m->stage_num, sizeof(i32), 1, fp);
+	fwrite(&m->fpr, sizeof(double), 1, fp);
+
 	while(stage_count < m->stage_num)
 	{
 		//printf("stage_count:%d stage_num：%d\n", stage_count, m->stage_num);
@@ -583,6 +586,7 @@ Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data 
 	double fpr_e, fpr_g;/*分别对应训练集和验证集上的假阳性率*/
 	double fnr_e, fnr_g;/*分别对应训练集和验证集上的假阴性率*/
 	double fpr_r, fnr_r;
+	Train_example *t_neg, *v_neg, *examples;
 	i32 t_pos_num = t_pos_data.im_num;
 	i32 v_pos_num = v_pos_data.im_num;
 	i32 t_neg_num = t_pos_num;
@@ -593,47 +597,31 @@ Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data 
 	i32 count;
 	i32 feat_num;
 	i32 i;
-	
 
 	/*获取正训练样本*/
 	Train_example *t_pos = make_pos_example(t_pos_data);
-	//printf("make train pos example finish\n");	
 	Train_example *v_pos = make_pos_example(v_pos_data);
-	//printf("make valid pos example finish\n");	
-
-	/*收集初始的训练和验证所用的负样本*/
-	Train_example *t_neg = make_neg_example(t_neg_data, 1, t_neg_num, wnd_size, NULL, 0, 0, 0);
-	Train_example *v_neg = make_neg_example(v_neg_data, 1, v_neg_num, wnd_size, NULL, 0, 0, 0);
-	Train_example *examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);/*把正负样本合到一个数组中去*/
-	example_num = t_pos_num + t_neg_num;/*所有样本*/
-	
 
 	if(retrain_flag)/*继续训练，需要评估fpr并且更换训练中用到的负样本*/
 	{
-		double fpr_t = 1 - test_model(model, t_neg, t_neg_num);/*训练集的假阳性率*/
-		double fpr_v = 1 - test_model(model, v_neg, v_neg_num);/*训练集的假阳性率*/
-		/*评估当前模型的fpr*/
-		fpr = max(fpr_t, fpr_v);
-		printf("initial model: stage_num:%d fpr:%lf\n", model->stage_num, fpr);
+		/*当前模型的fpr*/
+		fpr = model->fpr;
+		printf("initial model: stage_num:%d fpr:%.10lf\n", model->stage_num, fpr);
 		/*更换当前模型首次用到的假阳性样本*/
 		times("replenish examples beg\n");
-		/*重新收集负样本的训练集和验证集*/
-		for(i = 0; i < t_neg_num; i++)
-		{
-			free_image(t_neg[i].integ);
-		}
-		for(i = 0; i < v_neg_num; i++)
-		{
-			free_image(v_neg[i].integ);
-		}
-		free(t_neg);
-		free(v_neg);
-		free(examples);
 		t_neg = make_neg_example(t_neg_data, 0, t_neg_num, wnd_size, model, fpr, 1.5, 1);
 		v_neg = make_neg_example(v_neg_data, 0, v_neg_num, wnd_size, model, fpr, 1.5, 1);
 		examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);
 		example_num = t_neg_num + t_pos_num;
 		times("replenish examples end\n");
+	}
+	else
+	{
+		/*收集初始的训练和验证所用的负样本*/
+		t_neg = make_neg_example(t_neg_data, 1, t_neg_num, wnd_size, NULL, 0, 0, 0);
+		v_neg = make_neg_example(v_neg_data, 1, v_neg_num, wnd_size, NULL, 0, 0, 0);
+		examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);/*把正负样本合到一个数组中去*/
+		example_num = t_pos_num + t_neg_num;/*所有样本*/
 	}
 
 	/*生成特征信息*/
@@ -755,15 +743,16 @@ Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data 
 		opt_case = 0;
 		printf("add one stage\n");
 		printf("stage:%d stump_num:%d shift:%lf unit:%lf\n", l, new_stage->stump_num, s_l, u);
-		printf("current model: fpr:%lf\n", fpr);
-		printf("current stage: fnr:%lf and fpr:%lf\n", fpr_r, fnr_r);
+		printf("current model: fpr:%.10lf\n", fpr);
+		printf("current stage: fnr:%.6lf and fpr:%.6lf\n", fpr_r, fnr_r);
 
 		if(l % 1 == 0)/*每一层保存一次模型*/
 		{
 			char buf[100];
-			i32 len = sprintf(buf, "%s/attentional_cascade_%d.cfg", save_path, l);
+			i32 len = sprintf(buf, "%s/attention_cascade_%d.cfg", save_path, l);
 			buf[len] = 0;
 			printf("save model stage:%d\n", l);
+			model->fpr = fpr;
 			save_model(model, buf);
 		}
 	
@@ -858,4 +847,23 @@ i32 get_detect_wnd_size(Model *model)
 		return 0;
 	}
 	return model->head_stage->head_stump->feat.src_wnd_size;
+}
+
+
+/*
+功能：在数据有限的情况下评估模型的fpr
+*/
+double evaluate_model(Model *model, Train_example *examples, i32 example_num)
+{
+	double fpr = 1;
+	i32 stage_num = model->stage_num;
+	i32 count = 0;
+	Stage *stage = model->head_stage;
+	while(count < stage_num)
+	{
+		fpr *= (1 - test_stage(stage, examples, example_num));
+		count++;
+		stage = stage->next_stage;
+	}
+	return fpr;
 }
