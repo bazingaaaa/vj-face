@@ -555,7 +555,7 @@ void scan_image_for_training(vector<Sub_wnd> &candidate, Model *model, image im,
 备注：对应论文An Analysis of the Viola-Jones Face Detection Algorithm中的算法10
 	 可以持续训练
 */
-Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data v_pos_data, Data t_neg_data, Data v_neg_data, i32 wnd_size, float fpr_overall, float fpr_perstage, float fnr_perstage)
+Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data v_pos_data, Data t_neg_data, Data v_neg_data, i32 wnd_size, double fpr_overall, double fpr_perstage, double fnr_perstage)
 {
 	i32 l = 0;
 	Stage *tail_stage = NULL;
@@ -576,13 +576,13 @@ Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data 
 	{
 		model = (Model*)malloc(sizeof(Model));
 	}
-	float fpr = 1;
-	float u, s_l, T_l;
+	double fpr = 1;
+	double u, s_l, T_l;
 	i32 opt_case = 0;/*用于代码间进行跳转*/
 	i32 example_num;
-	float fpr_e, fpr_g;/*分别对应训练集和验证集上的假阳性率*/
-	float fnr_e, fnr_g;/*分别对应训练集和验证集上的假阴性率*/
-	float fpr_r, fnr_r;
+	double fpr_e, fpr_g;/*分别对应训练集和验证集上的假阳性率*/
+	double fnr_e, fnr_g;/*分别对应训练集和验证集上的假阴性率*/
+	double fpr_r, fnr_r;
 	i32 t_pos_num = t_pos_data.im_num;
 	i32 v_pos_num = v_pos_data.im_num;
 	i32 t_neg_num = t_pos_num;
@@ -610,11 +610,11 @@ Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data 
 
 	if(retrain_flag)/*继续训练，需要评估fpr并且更换训练中用到的负样本*/
 	{
-		float fpr_t = 1 - test_model(model, t_neg, t_neg_num);/*训练集的假阳性率*/
-		float fpr_v = 1 - test_model(model, v_neg, v_neg_num);/*训练集的假阳性率*/
+		double fpr_t = 1 - test_model(model, t_neg, t_neg_num);/*训练集的假阳性率*/
+		double fpr_v = 1 - test_model(model, v_neg, v_neg_num);/*训练集的假阳性率*/
 		/*评估当前模型的fpr*/
 		fpr = max(fpr_t, fpr_v);
-		printf("initial model: stage_num:%d fpr:%f\n", model->stage_num, fpr);
+		printf("initial model: stage_num:%d fpr:%lf\n", model->stage_num, fpr);
 		/*更换当前模型首次用到的假阳性样本*/
 		times("replenish examples beg\n");
 		/*重新收集负样本的训练集和验证集*/
@@ -754,9 +754,9 @@ Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data 
 		}
 		opt_case = 0;
 		printf("add one stage\n");
-		printf("stage:%d stump_num:%d shift:%f unit:%f\n", l, new_stage->stump_num, s_l, u);
-		printf("current model: fpr:%f\n", fpr);
-		printf("current stage: fnr:%f and fpr:%f\n", fpr_r, fnr_r);
+		printf("stage:%d stump_num:%d shift:%lf unit:%lf\n", l, new_stage->stump_num, s_l, u);
+		printf("current model: fpr:%lf\n", fpr);
+		printf("current stage: fnr:%lf and fpr:%lf\n", fpr_r, fnr_r);
 
 		if(l % 1 == 0)/*每一层保存一次模型*/
 		{

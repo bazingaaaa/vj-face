@@ -13,7 +13,7 @@
 
 
 void train_model(char *train_pos_path, char *train_neg_path, char *vali_pos_path, char *vali_neg_path,  char *modelfile, char *sava_path,
-		i32 wnd_size, float fnr_perstage, float fpr_perstage, float fpr_overall);
+		i32 wnd_size, double fnr_perstage, double fpr_perstage, double fpr_overall);
 
 
 /*
@@ -40,10 +40,13 @@ int main(int argc, char *argv[])
     	char *vali_neg = option_find_str(options, "validation_negative", "./vali_neg.list");
     	char *save_path = option_find_str(options, "backup", "./backup");
     	i32 wnd_size = option_find_int(options, "window_size", 24);
-    	float fnr_perstage = option_find_float(options, "fnr_perstage", 0.005);
-    	float fpr_perstage = option_find_float(options, "fnr_perstage", 0.5);
-    	float fpr_overall = option_find_float(options, "fpr_overall", 0.0000001);
+    	double fnr_perstage = option_find_float(options, "fnr_perstage", 0.005);
+    	double fpr_perstage = option_find_float(options, "fpr_perstage", 0.5);
+    	double fpr_overall = option_find_float(options, "fpr_overall", 0.0000001);
     	char *modelfile = find_char_arg(argc, argv, "-model", 0);
+        printf("using parameter:\n");
+        printf("window_size:%d fnr_perstage:%lf fpr_perstage:%lf fpr_overall:%.10lf\n",
+                wnd_size, fnr_perstage, fpr_perstage, fpr_overall);
     	train_model(train_pos, train_neg, vali_pos, vali_neg, modelfile, save_path, wnd_size, fnr_perstage, fpr_perstage, fpr_overall);
     }
     else if(0 == strcmp(argv[1], "test"))/*测试模型*/
@@ -82,7 +85,7 @@ int main(int argc, char *argv[])
 功能：训练模型
 */
 void train_model(char *train_pos_path, char *train_neg_path, char *vali_pos_path, char *vali_neg_path, char *modelfile, char *save_path,
-		i32 wnd_size, float fnr_perstage, float fpr_perstage, float fpr_overall)
+		i32 wnd_size, double fnr_perstage, double fpr_perstage, double fpr_overall)
 {
 	char buf[100];
 	/*加载数据，并对正样本进行预处理，负样本需要在训练过程中对截取的窗口进行处理，无法提前进行预处理*/

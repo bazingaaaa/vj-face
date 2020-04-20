@@ -11,7 +11,7 @@ Viola jones face detection implementation
 语言：c/c++  
 平台：macOS/linux  
 环境：opencv4.2.0 + openmp  
-
+数据：没有提供训练数据，只提供了一个默认的模型配置文件
 
 
 参考文章

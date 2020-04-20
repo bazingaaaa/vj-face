@@ -15,8 +15,8 @@ float calc_haar_feat_val(image integ, Haar_feat *pFeat);
 /*classifier.c*/
 void calc_example_feat_val(Feat_info *parallel_examples, Train_example *array, i32 example_num, Haar_feat *pFeat);
 Stump *find_best_stump(Feat_info **parallel_examples, Train_example *array, i32 example_num, Haar_feat *feat_array, i32 feat_num);
-float test_stump(Stump *stmp, Train_example *examples, i32 example_num);
-float test_stage(Stage *s, Train_example *examples, i32 example_num);
+double test_stump(Stump *stmp, Train_example *examples, i32 example_num);
+double test_stage(Stage *s, Train_example *examples, i32 example_num);
 i8 stump_func(Stump *stmp, image integ, i32 train_flag);
 i8 stage_func(Stage *s, image integ, i32 train_flag);
 Stage *adaboost(Feat_info **parallel_examples, Train_example *examples, i32 example_num, i32 pos_num, i32 neg_num, Haar_feat *feat_array, i32 feat_num, i32 depth);
@@ -29,7 +29,7 @@ Model *load_model(const char* path);
 float test_model(Model *m, Train_example *examples, i32 example_num);
 void make_predictions(Model *m, Train_example *examples, i32 example_num);
 i8 model_func(Model *m, image integ);
-Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data v_pos_data, Data t_neg_data, Data v_neg_data, i32 wnd_size, float fpr_overall, float fpr_perstage, float fnr_perstage);
+Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data v_pos_data, Data t_neg_data, Data v_neg_data, i32 wnd_size, double fpr_overall, double fpr_perstage, double fnr_perstage);
 i32 run_detection(image im, Model *model, i32 skin_test_flag, char *savepath);
 float test_model(Model *m, Train_example *examples, i32 example_num);
 void scan_image_for_testing(std::vector<Sub_wnd> &candidate, Model *model, image im, i32 wnd_size, float scale_size, i32 step_size);
@@ -67,7 +67,7 @@ char *option_find(List *l, char *key);
 char *option_find_str(List *l, char *key, char *def);
 int option_find_int(List *l, char *key, int def);
 List *read_data_cfg(char *filename);
-float option_find_float(List *l, char *key, float def);
+double option_find_float(List *l, char *key, double def);
 
 
 #endif

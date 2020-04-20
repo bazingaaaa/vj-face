@@ -314,7 +314,7 @@ int option_find_int(List *l, char *key, int def)
 /*
 功能：选项寻找，浮点型
 */
-float option_find_float(list *l, char *key, float def)
+double option_find_float(list *l, char *key, double def)
 {
     char *v = option_find(l, key);
     if(v) return atof(v);

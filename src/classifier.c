@@ -125,7 +125,6 @@ Stump search_decision_stump(Feat_info *parallel_examples, i32 example_num)
 /*
 功能：找到最佳决策桩
 备注：对应论文An Analysis of the Viola-Jones Face Detection Algorithm中的算法5
-	 此处和论文中有所不同，由于存在内存不足的问题，我们一次只计算所有训练样本的一种特征信息，然后进行决策桩选择
 */
 Stump *find_best_stump(Feat_info **parallel_examples, Train_example *examples, i32 example_num, Haar_feat *feat_array, i32 feat_num)
 {
@@ -207,7 +206,7 @@ static int compare(const void *p1, const void *p2)
 功能：测试单个树桩的识别性能
 备注：测试程序正确性代码，可删除
 */
-float test_stump(Stump *stmp, Train_example *examples, i32 example_num)
+double test_stump(Stump *stmp, Train_example *examples, i32 example_num)
 {
 	i32 i;
 	i32 count = 0;
@@ -349,7 +348,7 @@ i8 stage_func(Stage *s, image integ, i32 train_flag)
 功能：测试单个树桩的识别性能
 备注：测试程序正确性代码，可删除
 */
-float test_stage(Stage *s, Train_example *examples, i32 example_num)
+double test_stage(Stage *s, Train_example *examples, i32 example_num)
 {
 	i32 i;
 	i32 count = 0;
