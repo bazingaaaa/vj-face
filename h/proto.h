@@ -30,7 +30,7 @@ float test_model(Model *m, Train_example *examples, i32 example_num);
 void make_predictions(Model *m, Train_example *examples, i32 example_num);
 i8 model_func(Model *m, image integ);
 Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data v_pos_data, Data t_neg_data, Data v_neg_data, i32 wnd_size, double fpr_overall, double fpr_perstage, double fnr_perstage);
-i32 run_detection(image im, Model *model, i32 skin_test_flag, char *savepath);
+image run_detection(image im, Model *model, i32 skin_test_flag);
 float test_model(Model *m, Train_example *examples, i32 example_num);
 void scan_image_for_testing(std::vector<Sub_wnd> &candidate, Model *model, image im, i32 wnd_size, float scale_size, i32 step_size);
 void scan_image_for_training(std::vector<Sub_wnd> &candidate, Model *model, image im, i32 wnd_size, float scale_size, i32 step_size);
@@ -39,7 +39,7 @@ i8 skin_test(image src, Sub_wnd wnd);
 void free_model(Model *model, i32 is_load_model);
 i32 get_detect_wnd_size(Model *model);
 double evaluate_model(Model *model, Train_example *examples, i32 example_num);
-
+void detect(Model *model, i32 skin_test_flag, char *infile, char *save_path);
 
 /*utils.h*/
 void assertion_failure(char *exp, char *file, char *base_file, int line);

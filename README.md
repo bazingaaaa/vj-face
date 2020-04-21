@@ -54,14 +54,20 @@ haarcascade框架使用说明
 ### 测试阶段
 
 第一个参数: test，代表进行测试  
-第二个参数: 测试文件路径，一般为*.jpg, *.png, *.gif  
+第二个参数: 测试文件路径，一般为*.jpg, *.png, *.gif，当该参数名为“webcam”时，程序会打开0号摄像头并进行检测（如果有的话，并且编译时勾选了opencv）  
 -model 模型配置文件路径（可选，默认加载模型./backup/attentional_cascade_def.cfg）  
 -outfile 测试得到的文件保存路径，可通过opencv直接查看，编译时需配置opencv选项（可选）  
 -skintest 肤色测试开关，1打开  0关闭，测试彩色图像时可以打开，测试灰度图像时需要关闭，默认为关闭（可选） 
 
-用法如下：
+一般图像测试：
 
      ./haarcascade test ./Users/bazinga/Desktop/daddario.jpg
+
+打开摄像头:
+
+```
+./haarcascade test webcam
+```
 
 
 

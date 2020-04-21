@@ -24,15 +24,15 @@ Model *load_model(const char* path)
 	char ch;
 	i32 i, j;
 
-	if(NULL == fp)/*错误文件*/
+	if(NULL == fp)/*无效文件*/
 	{
 		printf("modelfile doesn't exist!\n");
 		return NULL;
 	}
 	fread(&ch, sizeof(char), 1, fp);
-	if(magic != ch)
+	if(magic != ch)/*非模型文件*/
 	{
-		printf("%s is not a valid cfg file!\n", path);
+		printf("%s is not a valid modelfile!\n", path);
 		return NULL;
 	}
 
@@ -185,6 +185,11 @@ i32 is_inside(Sub_wnd w1, Sub_wnd w2)
 }
 
 
+bool cmp(Sub_wnd wnd1, Sub_wnd wnd2)
+{
+	return wnd1.size > wnd2.size;
+}
+
 /*
 功能：检测后处理，对检测窗进行进一步筛选，剔除掉虚警和重复检测
 参数：candidate-通过模型检测出来的图像中的候选窗口
@@ -198,6 +203,9 @@ void post_processing(vector<Sub_wnd> &candidate, i32 w, i32 h, float confidence_
 	i32 wnd_num = candidate.size();
 	i32 *in_img = (i32*)calloc(w * h, sizeof(i32));
 	i32 i, j;
+
+	/**/
+	sort(candidate.begin(), candidate.end(), cmp);
 
 	/*用检测窗大小对输入的图像进行初始化*/
 	for(i = 0; i < wnd_num; i++)
@@ -355,10 +363,10 @@ void free_model(Model *model, i32 is_load_model)
      model-检测用到的模型
      skin_test_flag-是否进行肤色检测
      savepath-图像检测后的保存路径
-返回值：检测框数目
+返回值：画了检测窗的图像
 备注：对图像中的目标进行检测，并在图像上画出检测框
 */
-i32 run_detection(image im, Model *model, i32 skin_test_flag, char *savepath)
+image run_detection(image im, Model *model, i32 skin_test_flag)
 {
 	image im_gray;
 	i32 is_gray_image = 0;
@@ -367,12 +375,15 @@ i32 run_detection(image im, Model *model, i32 skin_test_flag, char *savepath)
 	vector<Sub_wnd> candidate;
 	if(NULL == model)
 	{
-		return 0;
+		return im;
 	}
 	i32 wnd_size = get_detect_wnd_size(model);
 
+	scale_image(im, 255.0);
+
 	/*如果图像过大（长和宽限制在512以内，保证一定的横纵比），对图像进行resize*/
  	im = constrain_image_size(im, 512);
+
 
 	/*彩色图像转换为灰度图像再进行检测*/
 	if(3 == im.c)
@@ -382,15 +393,15 @@ i32 run_detection(image im, Model *model, i32 skin_test_flag, char *savepath)
 	else
 	{
 		is_gray_image = 1;
-		im_gray = im;
+		im_gray = copy_image(im);
 	}
 	
 	times("scan_image begin ");
 	/*扫描整个图像，产生候选窗*/
- 	scan_image_for_testing(candidate, model, im_gray, wnd_size, 1.5, 1);
+ 	scan_image_for_testing(candidate, model, im_gray, wnd_size, 1.25, 24);
 	
 	/*后处理，进一步剔除false positive*/
-	post_processing(candidate, im_gray.w, im_gray.h, 3.0 / wnd_size);
+	//post_processing(candidate, im_gray.w, im_gray.h, 3.0 / wnd_size);
 
 	/*在被检测图像上画出检测框*/
 	for(i = 0; i < candidate.size(); i++)
@@ -405,24 +416,12 @@ i32 run_detection(image im, Model *model, i32 skin_test_flag, char *savepath)
 
 	printf("detection count:%d\n", count);
 	times("scan_image end ");
-	
-
-	scale_image(im, 1.0/255);
-#ifdef OPENCV
-	show_image(im, "test", 500000);
-#endif
-
-	if(NULL != savepath)
-	{
-		save_image(im, savepath);
-	}
 
 	free_image(im_gray);
-	if(!is_gray_image)
-	{
-		free_image(im);
-	}
-	return count;
+	
+	scale_image(im, 1.0/255);
+
+	return im;
 }
 
 
@@ -442,12 +441,12 @@ void scan_image_for_testing(vector<Sub_wnd> &candidate, Model *model, image im, 
 	#pragma omp parallel for 
 	for(ij = 0; ij < possibleConers; ij++)
 	{
-		int i = ij / possibleJ;
-		int j = ij % possibleJ;
+		int i = ij / possibleJ * step_size;
+		int j = ij % possibleJ * step_size;
 		float scale = 1;
 		Sub_wnd wnd;
 		wnd.pos_i = i;
-		wnd.pos_j = j;
+		wnd.pos_j = j ;
 		wnd.size = wnd_size;
 		while(i + wnd.size <= h && j + wnd.size <= w)
 		{
@@ -493,8 +492,8 @@ void scan_image_for_training(vector<Sub_wnd> &candidate, Model *model, image im,
 	#pragma omp parallel for 
 	for(ij = 0; ij < possibleConers; ij++)
 	{
-		int i = ij / possibleJ;
-		int j = ij % possibleJ;
+		int i = ij / possibleJ * step_size;
+		int j = ij % possibleJ * step_size;
 		float scale = 1;
 		Sub_wnd wnd;
 		wnd.pos_i = i;
@@ -851,19 +850,58 @@ i32 get_detect_wnd_size(Model *model)
 
 
 /*
-功能：在数据有限的情况下评估模型的fpr
+功能：运行检测
 */
-double evaluate_model(Model *model, Train_example *examples, i32 example_num)
+void detect(Model *model, i32 skin_test_flag, char *infile, char *save_path)
 {
-	double fpr = 1;
-	i32 stage_num = model->stage_num;
-	i32 count = 0;
-	Stage *stage = model->head_stage;
-	while(count < stage_num)
+	i32 web_cam = 0;
+	image im;
+	image im_detected;
+	if(0 == strcmp(infile, "webcam"))/*输入图像来自摄像头*/
 	{
-		fpr *= (1 - test_stage(stage, examples, example_num));
-		count++;
-		stage = stage->next_stage;
+		web_cam = 1;
 	}
-	return fpr;
+	else
+	{
+		im = load_image(infile);
+	}
+#ifdef OPENCV
+	if(web_cam)
+	{
+		VideoCapture camera;
+		camera.open(0);
+		if(!camera.isOpened())
+   		{
+   			fprintf(stderr, "ERROR: Could not access the camera or video!\n");
+   			exit(0);
+   		}
+   		camera.set(CAP_PROP_FRAME_WIDTH, 512);
+    	camera.set(CAP_PROP_FRAME_HEIGHT, 512);
+   		while(1)
+   		{
+   			image im = get_image_from_stream(&camera);
+			im_detected = run_detection(im, model, skin_test_flag);
+			i32 key = show_image(im_detected, "webcam", 10);
+			if(27 == key)/*退出*/
+			{
+				break;
+			}
+			free_image(im_detected);
+   		}
+		
+	}
+	else
+	{	
+		im_detected = run_detection(im, model, skin_test_flag);
+		show_image(im_detected, "test", 100000);
+	}
+#else
+	im_detected = run_detection(im, model, skin_test_flag);
+#endif
+	
+	if(NULL != save_image && web_cam == 0)
+	{
+		save_image(im_detected, save_path);
+	}
+	free_image(im_detected);
 }

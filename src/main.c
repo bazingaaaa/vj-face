@@ -56,6 +56,7 @@ int main(int argc, char *argv[])
 		i32 skin_test_flag = 0;
 		char *outfile = NULL;
 		Model *model = NULL;
+        image im;
     	infile = argv[2];
 
     	modelfile = find_char_arg(argc, argv, "-model", "./backup/attention_cascade_def.cfg");
@@ -67,8 +68,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "Load file failed\n");		
 			return -1;
   		}
-		image im = load_image_extend(infile);
-		run_detection(im, model, skin_test_flag, outfile);
+        detect(model, skin_test_flag, infile, outfile);
 		free_model(model, 1);
 		return 0;
     }
