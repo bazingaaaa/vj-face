@@ -91,7 +91,7 @@ i8 save_model(Model *m, const char* path)
 	/*将模型写入文件*/
 	i32 stage_count = 0;
 	Stage *stage = m->head_stage;
-
+	
 	fwrite(&m->stage_num, sizeof(i32), 1, fp);
 	fwrite(&m->fpr, sizeof(double), 1, fp);
 
@@ -362,7 +362,6 @@ void free_model(Model *model, i32 is_load_model)
 参数：im-待检测图像
      model-检测用到的模型
      skin_test_flag-是否进行肤色检测
-     savepath-图像检测后的保存路径
 返回值：画了检测窗的图像
 备注：对图像中的目标进行检测，并在图像上画出检测框
 */
@@ -398,7 +397,7 @@ image run_detection(image im, Model *model, i32 skin_test_flag)
 	
 	times("scan_image begin ");
 	/*扫描整个图像，产生候选窗*/
- 	scan_image_for_testing(candidate, model, im_gray, wnd_size, 1.25, 24);
+ 	scan_image_for_testing(candidate, model, im_gray, wnd_size, 1.25, 12);
 	
 	/*后处理，进一步剔除false positive*/
 	//post_processing(candidate, im_gray.w, im_gray.h, 3.0 / wnd_size);

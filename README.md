@@ -66,7 +66,7 @@ haarcascade框架使用说明
 打开摄像头:
 
 ```
-./haarcascade test webcam
+./haarcascade test webcam -skintest 1
 ```
 
 
