@@ -2,7 +2,7 @@ OPENCV=1
 OPENMP=1
 DEBUG=0
 
-OBJ=classifier.o feature.o image.o load_image.o utils.o model.o list.o data.o
+OBJ=classifier.o feature.o image.o load_image.o utils.o model.o list.o data.o postprocess.o
 EXOBJ=main.o
 
 VPATH=./src/:./

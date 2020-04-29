@@ -5,7 +5,7 @@
 typedef struct model
 {
 	i32 stage_num;
-	double fpr;/**è®­ç»ƒæ‰€å¾—çš„fprï¼Œç”¨äºç»§ç»­è®­ç»ƒ*/
+	double fpr;/*ÑµÁ·ËùµÃµÄfpr£¬ÓÃÓÚ¼ÌĞøÑµÁ·*/
 	Stage *head_stage;
 }Model;
 

@@ -4,19 +4,20 @@
 #include "feature.h"
 #include "stdlib.h"
 
+
 /*
-åŠŸèƒ½ï¼šè®¡ç®—æŒ‡å®šå¤§å°çª—å£å†…çš„haarç‰¹å¾æ•°é‡
-å‚æ•°ï¼šwndSize-çª—å£å¤§å°ï¼ˆæ­£æ–¹å½¢ï¼‰
-	 featW-ç‰¹å¾çŸ©å½¢å®½åº¦
-	 featH-ç‰¹å¾çŸ©å½¢é«˜åº¦
-è¿”å›å€¼ï¼šHaar-likeç‰¹å¾æ•°é‡
+¹¦ÄÜ£º¼ÆËãÖ¸¶¨´óĞ¡´°¿ÚÄÚµÄhaarÌØÕ÷ÊıÁ¿
+²ÎÊı£ºwndSize-´°¿Ú´óĞ¡£¨Õı·½ĞÎ£©
+	 featW-ÌØÕ÷¾ØĞÎ¿í¶È
+	 featH-ÌØÕ÷¾ØĞÎ¸ß¶È
+·µ»ØÖµ£ºHaar-likeÌØÕ÷ÊıÁ¿
 */
 u32 calc_haar_feat_num(u16 wndSize, u16 w, u16 h)
 {
-	/*è®¡ç®—ç«–è½´*/
+	/*¼ÆËãÊúÖá*/
 	u16 ch = floor(wndSize * 1.0 / h);
 	u16 nh = ch * (wndSize + 1) - ((1 + ch) * ch) / 2 * h;
-	/*è®¡ç®—æ¨ªè½´*/
+	/*¼ÆËãºáÖá*/
 	u16 cw = floor(wndSize * 1.0 / w);
 	u16 nw = cw * (wndSize + 1) - ((1 + cw) * cw) / 2 * w;
 	return nh * nw;
@@ -24,8 +25,8 @@ u32 calc_haar_feat_num(u16 wndSize, u16 w, u16 h)
 
 
 /*
-åŠŸèƒ½ï¼šå¡«å†™haarç‰¹å¾å‚æ•°ï¼Œè®°å½•ç‰¹å¾ä¿¡æ¯
-å¤‡æ³¨ï¼šxä¸ºå‚ç›´æ–¹å‘ï¼Œyä¸ºæ°´å¹³æ–¹å‘
+¹¦ÄÜ£ºÌîĞ´haarÌØÕ÷²ÎÊı£¬¼ÇÂ¼ÌØÕ÷ĞÅÏ¢
+±¸×¢£ºxÎª´¹Ö±·½Ïò£¬yÎªË®Æ½·½Ïò
 */
 void make_haar_feat(Haar_feat *pFeat, u8 type, u16 i, u16 j, u16 w, u16 h, u16 src_wnd_size)
 {
@@ -39,7 +40,7 @@ void make_haar_feat(Haar_feat *pFeat, u8 type, u16 i, u16 j, u16 w, u16 h, u16 s
 
 
 /*
-åŠŸèƒ½ï¼šè®¡ç®—Aç±»ç‰¹å¾å€¼
+¹¦ÄÜ£º¼ÆËãAÀàÌØÕ÷Öµ
 */	
 float calc_featA_val(image integ, i32 i, i32 j, i32 w, i32 h)
 {
@@ -49,7 +50,7 @@ float calc_featA_val(image integ, i32 i, i32 j, i32 w, i32 h)
 
 
 /*
-åŠŸèƒ½ï¼šè®¡ç®—Bç±»ç‰¹å¾å€¼
+¹¦ÄÜ£º¼ÆËãBÀàÌØÕ÷Öµ
 */
 float calc_featB_val(image integ, i32 i, i32 j, i32 w, i32 h)
 {
@@ -60,7 +61,7 @@ float calc_featB_val(image integ, i32 i, i32 j, i32 w, i32 h)
 
 
 /*
-åŠŸèƒ½ï¼šè®¡ç®—Cç±»ç‰¹å¾å€¼
+¹¦ÄÜ£º¼ÆËãCÀàÌØÕ÷Öµ
 */
 float calc_featC_val(image integ, i32 i, i32 j, i32 w, i32 h)
 {
@@ -70,7 +71,7 @@ float calc_featC_val(image integ, i32 i, i32 j, i32 w, i32 h)
 
 
 /*
-åŠŸèƒ½ï¼šè®¡ç®—Dç±»ç‰¹å¾å€¼
+¹¦ÄÜ£º¼ÆËãDÀàÌØÕ÷Öµ
 */
 float calc_featD_val(image integ, i32 i, i32 j, i32 w, i32 h)
 {
@@ -81,7 +82,7 @@ float calc_featD_val(image integ, i32 i, i32 j, i32 w, i32 h)
 
 
 /*
-åŠŸèƒ½ï¼šè®¡ç®—Eç±»ç‰¹å¾å€¼
+¹¦ÄÜ£º¼ÆËãEÀàÌØÕ÷Öµ
 */
 float calc_featE_val(image integ, i32 i, i32 j, i32 w, i32 h)
 {
@@ -93,10 +94,10 @@ float calc_featE_val(image integ, i32 i, i32 j, i32 w, i32 h)
 
 
 /*
-åŠŸèƒ½ï¼šè®¡ç®—haarç‰¹å¾å€¼(è€ƒè™‘äº†scalingçš„æƒ…å†µ)
-å‚æ•°ï¼špWnd-æŒ‡å‘å­çª—çš„æŒ‡é’ˆ
-	 pFeat-æŒ‡å‘ç‰¹å¾çš„æŒ‡é’ˆ
-å¤‡æ³¨ï¼šå¯¹åº”è®ºæ–‡An Analysis of the Viola-Jones Face Detection Algorithmä¸­çš„ç®—æ³•3
+¹¦ÄÜ£º¼ÆËãhaarÌØÕ÷Öµ(¿¼ÂÇÁËscalingµÄÇé¿ö)
+²ÎÊı£ºpWnd-Ö¸Ïò×Ó´°µÄÖ¸Õë
+	 pFeat-Ö¸ÏòÌØÕ÷µÄÖ¸Õë
+±¸×¢£º¶ÔÓ¦ÂÛÎÄAn Analysis of the Viola-Jones Face Detection AlgorithmÖĞµÄËã·¨3
 */
 float calc_haar_feat_val(image integ, Haar_feat *pFeat)
 {
@@ -161,16 +162,16 @@ float calc_haar_feat_val(image integ, Haar_feat *pFeat)
 
 
 /*
-åŠŸèƒ½ï¼šç”Ÿæˆçª—å£å†…æŒ‡å®šç±»å‹çš„ç‰¹å¾
-è¿”å›å€¼ï¼šæ€»ç‰¹å¾æ•°é‡
+¹¦ÄÜ£ºÉú³É´°¿ÚÄÚÖ¸¶¨ÀàĞÍµÄÌØÕ÷
+·µ»ØÖµ£º×ÜÌØÕ÷ÊıÁ¿
 */
 i32 make_specific_feat(u8 type, u16 wndSize, Haar_feat *feat_array)
 {
 	i32 count = 0;
-	u16 w_array[] = {2, 3, 1, 1, 2};/*å¯¹åº”å„ç±»å‹haarç‰¹å¾æœ€å°å®½åº¦*/
-	u16 h_array[] = {1, 1, 2, 3, 2};/*å¯¹åº”å„ç±»å‹haarç‰¹å¾æœ€å°é«˜åº¦*/
-	u16 w = w_array[type];/*å®½åº¦åˆå§‹å€¼*/
-	u16 h = h_array[type];/*é«˜åº¦åˆå§‹å€¼*/
+	u16 w_array[] = {2, 3, 1, 1, 2};/*¶ÔÓ¦¸÷ÀàĞÍhaarÌØÕ÷×îĞ¡¿í¶È*/
+	u16 h_array[] = {1, 1, 2, 3, 2};/*¶ÔÓ¦¸÷ÀàĞÍhaarÌØÕ÷×îĞ¡¸ß¶È*/
+	u16 w = w_array[type];/*¿í¶È³õÊ¼Öµ*/
+	u16 h = h_array[type];/*¸ß¶È³õÊ¼Öµ*/
 	u16 ch = floor(wndSize * 1.0 / h);
 	u16 cw = floor(wndSize * 1.0 / w);
 	u16 i, j, m, n;
@@ -194,19 +195,19 @@ i32 make_specific_feat(u8 type, u16 wndSize, Haar_feat *feat_array)
 
 
 /*
-åŠŸèƒ½ï¼šç”ŸæˆæŒ‡å®šå¤§å°çª—å£çš„æ‰€æœ‰haarç‰¹å¾
+¹¦ÄÜ£ºÉú³ÉÖ¸¶¨´óĞ¡´°¿ÚµÄËùÓĞhaarÌØÕ÷
 */
 Haar_feat *make_haar_features(u16 wndSize, i32 *num)
 {
-	i32 feat_num = calc_haar_feat_num(wndSize, 2, 1)/*aç±»ç‰¹å¾*/
-				 + calc_haar_feat_num(wndSize, 3, 1)/*bç±»ç‰¹å¾*/
-				 + calc_haar_feat_num(wndSize, 1, 2)/*cç±»ç‰¹å¾*/
-				 + calc_haar_feat_num(wndSize, 1, 3)/*dç±»ç‰¹å¾*/
-				 + calc_haar_feat_num(wndSize, 2, 2);/*eç±»ç‰¹å¾*/
+	i32 feat_num = calc_haar_feat_num(wndSize, 2, 1)/*aÀàÌØÕ÷*/
+				 + calc_haar_feat_num(wndSize, 3, 1)/*bÀàÌØÕ÷*/
+				 + calc_haar_feat_num(wndSize, 1, 2)/*cÀàÌØÕ÷*/
+				 + calc_haar_feat_num(wndSize, 1, 3)/*dÀàÌØÕ÷*/
+				 + calc_haar_feat_num(wndSize, 2, 2);/*eÀàÌØÕ÷*/
 	Haar_feat *feat_array = (Haar_feat*)malloc(sizeof(Haar_feat) * feat_num);
 	i32 count = 0;
 	
-	/*ç”Ÿæˆå„ç±»ç‰¹å¾*/
+	/*Éú³É¸÷ÀàÌØÕ÷*/
 	count += make_specific_feat(FEAT_A, wndSize, &feat_array[count]);
 	count += make_specific_feat(FEAT_B, wndSize, &feat_array[count]);
 	count += make_specific_feat(FEAT_C, wndSize, &feat_array[count]);

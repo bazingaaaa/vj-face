@@ -4,9 +4,9 @@
 
 #define ASSERT
 #ifdef ASSERT
-void assertion_failure(char *exp, char *file, char *base_file, int line);
+void assertion_failure(char *exp, char *file, int line);
 #define assert(exp)  if (exp) ; \
-        else assertion_failure(#exp, __FILE__, __BASE_FILE__, __LINE__)
+        else assertion_failure(#exp, __FILE__, __LINE__)
 #else
 #define assert(exp)
 #endif
@@ -35,19 +35,19 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 #define FPR_GOAL (10e-7)
 
 
-/*ç›®å‰ä»…å®ç°ä¸€ç§ç‰¹å¾æ¨¡å¼*/
+/*Ä¿Ç°½öÊµÏÖÒ»ÖÖÌØÕ÷Ä£Ê½*/
 typedef enum haar_feature_mode
 {
-	HAAR_BASIC,/*ä»…åŒ…å«å‚ç›´ç‰¹å¾ï¼Œå…±5ç§ç‰¹å¾æ¨¡ç‰ˆ*/
-	//HAAR_ALL/*åŒ…å«è¾¹ç¼˜ï¼Œçº¿æ€§ï¼Œä¸­å¿ƒç‰¹å¾ï¼Œå…±14ç§ç‰¹å¾æ¨¡ç‰ˆ*/
+	HAAR_BASIC,/*½ö°üº¬´¹Ö±ÌØÕ÷£¬¹²5ÖÖÌØÕ÷Ä£°æ*/
+	//HAAR_ALL/*°üº¬±ßÔµ£¬ÏßĞÔ£¬ÖĞĞÄÌØÕ÷£¬¹²14ÖÖÌØÕ÷Ä£°æ*/
 }Feat_mode;
 
 
 
-/*haarç‰¹å¾ç±»åˆ«,å…±äº”ç§,å…¶ä¸­
-aå’Œcç”±ä¸¤ä¸ªçŸ©å½¢ç»„æˆï¼Œåˆ†åˆ«ä¸ºæ°´å¹³å’Œå‚ç›´ç»“æ„
-bå’Œdç”±ä¸‰ä¸ªçŸ©å½¢ç»„æˆï¼Œåˆ†åˆ«ä¸ºæ°´å¹³å’Œå‚ç›´ç»“æ„
-eç”±å››ä¸ªçŸ©å½¢ç»„æˆï¼Œæ°´å¹³å’Œå‚ç›´æ–¹å‘å‡æœ‰ä¸¤ä¸ª
+/*haarÌØÕ÷Àà±ğ,¹²ÎåÖÖ,ÆäÖĞ
+aºÍcÓÉÁ½¸ö¾ØĞÎ×é³É£¬·Ö±ğÎªË®Æ½ºÍ´¹Ö±½á¹¹
+bºÍdÓÉÈı¸ö¾ØĞÎ×é³É£¬·Ö±ğÎªË®Æ½ºÍ´¹Ö±½á¹¹
+eÓÉËÄ¸ö¾ØĞÎ×é³É£¬Ë®Æ½ºÍ´¹Ö±·½Ïò¾ùÓĞÁ½¸ö
 */
 typedef enum haar_feature_type
 {

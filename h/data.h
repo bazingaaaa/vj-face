@@ -9,9 +9,9 @@ typedef struct training_example
 	float feat_val;
 	float weight;
 
-	u16 size;/*绐楀彛澶у皬*/
-    u16 x;/*X杞存槸绔栫洿鏂瑰悜*/
-    u16 y;/*Y杞存槸姘村钩鏂瑰悜*/
+	u16 size;/*窗口大小*/
+    u16 x;/*X轴是竖直方向*/
+    u16 y;/*Y轴是水平方向*/
 	image src_img;
 }Train_example;
 
@@ -29,9 +29,10 @@ typedef struct
 
 typedef struct
 {
+	Train_example *example;
 	float feat_val;
-	float weight;
-	i32 label;
+	//float weight;
+	//i32 label;
 }Feat_info;
 
 

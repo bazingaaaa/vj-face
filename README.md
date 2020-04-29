@@ -9,9 +9,10 @@ Viola jones face detection implementation
 
 # 说明
 语言：c/c++  
-平台：macOS/linux  
+平台：macOS/linux/windows     
 环境：opencv4.2.0 + openmp  
-数据：没有提供训练数据，只提供了一个默认的模型配置文件
+数据：训练集:2000张人脸 2721张非人脸   验证集:1000张人脸 601张非人脸
+需要数据的可以留邮箱
 
 
 参考文章
@@ -28,6 +29,7 @@ Viola jones face detection implementation
 示例
 =====
 
+此处有图。
 
 
 
@@ -95,6 +97,5 @@ haarcascade框架使用说明
 
 
 
-
-可参考：[Viola jones face detecion原理]()
+可参考：[Viola jones face detecion原理](https://www.jianshu.com/p/f5e16cc99033)
 

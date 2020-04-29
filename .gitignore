@@ -9,3 +9,11 @@
 *.png
 *.DS_Store
 *.o
+*.png
+*.jpg
+*.obj
+*.pdb
+*.log
+*.tlog
+*.ipch
+*.zip

@@ -17,7 +17,7 @@ void train_model(char *train_pos_path, char *train_neg_path, char *vali_pos_path
 
 
 /*
-åŠŸèƒ½ï¼šä¸»å‡½æ•°
+¹¦ÄÜ£ºÖ÷º¯Êı
 */
 int main(int argc, char *argv[])
 {
@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    if(0 == strcmp(argv[1], "train"))/*è®­ç»ƒæ¨¡å‹*/
+    if(0 == strcmp(argv[1], "train"))/*ÑµÁ·Ä£ĞÍ*/
     {
     	char *datacfg = argv[2];
     	list *options = read_data_cfg(datacfg);
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
                 wnd_size, fnr_perstage, fpr_perstage, fpr_overall);
     	train_model(train_pos, train_neg, vali_pos, vali_neg, modelfile, save_path, wnd_size, fnr_perstage, fpr_perstage, fpr_overall);
     }
-    else if(0 == strcmp(argv[1], "test"))/*æµ‹è¯•æ¨¡å‹*/
+    else if(0 == strcmp(argv[1], "test"))/*²âÊÔÄ£ĞÍ*/
     {
     	char *infile = NULL;
 		char *modelfile = NULL;
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 		free_model(model, 1);
 		return 0;
     }
-    else/*é”™è¯¯é€‰é¡¹*/
+    else/*´íÎóÑ¡Ïî*/
     {
         fprintf(stderr, "Not an action: %s. \naction: train or test)\n", argv[0]);
     }
@@ -82,13 +82,15 @@ int main(int argc, char *argv[])
 
 
 /*
-åŠŸèƒ½ï¼šè®­ç»ƒæ¨¡å‹
+¹¦ÄÜ£ºÑµÁ·Ä£ĞÍ
 */
 void train_model(char *train_pos_path, char *train_neg_path, char *vali_pos_path, char *vali_neg_path, char *modelfile, char *save_path,
 		i32 wnd_size, double fnr_perstage, double fpr_perstage, double fpr_overall)
 {
 	char buf[100];
-	/*åŠ è½½æ•°æ®ï¼Œå¹¶å¯¹æ­£æ ·æœ¬è¿›è¡Œé¢„å¤„ç†ï¼Œè´Ÿæ ·æœ¬éœ€è¦åœ¨è®­ç»ƒè¿‡ç¨‹ä¸­å¯¹æˆªå–çš„çª—å£è¿›è¡Œå¤„ç†ï¼Œæ— æ³•æå‰è¿›è¡Œé¢„å¤„ç†*/
+
+    Model *model = load_model(modelfile);
+	/*¼ÓÔØÊı¾İ£¬²¢¶ÔÕıÑù±¾½øĞĞÔ¤´¦Àí£¬¸ºÑù±¾ĞèÒªÔÚÑµÁ·¹ı³ÌÖĞ¶Ô½ØÈ¡µÄ´°¿Ú½øĞĞ´¦Àí£¬ÎŞ·¨ÌáÇ°½øĞĞÔ¤´¦Àí*/
 	printf("Loading data....\n");
 	Data t_pos_data = load_image_data(train_pos_path);
 	Data v_pos_data = load_image_data(vali_pos_path);
@@ -104,16 +106,15 @@ void train_model(char *train_pos_path, char *train_neg_path, char *vali_pos_path
 	printf("Finish loading data....\n");
     
 
-    /*æ¨¡å‹åŠ è½½å’Œè®­ç»ƒ*/
-	Model *model = load_model(modelfile);
+    /*Ä£ĞÍ¼ÓÔØºÍÑµÁ·*/
 	model = attentional_cascade(save_path, model, t_pos_data, v_pos_data, t_neg_data, v_neg_data, wnd_size, fpr_overall, fpr_perstage, fnr_perstage);
 	
-	/*æœ€ç»ˆæ¨¡å‹ä¿å­˜*/
+	/*×îÖÕÄ£ĞÍ±£´æ*/
 	i32 len = sprintf(buf, "%s/attentional_cascade_final.cfg", save_path);
 	buf[len] = 0;
 	save_model(model, buf);
 
-    /*é‡Šæ”¾å›¾ç‰‡æ•°æ®*/
+    /*ÊÍ·ÅÍ¼Æ¬Êı¾İ*/
     free_image_data(t_pos_data);
     free_image_data(t_neg_data);
     free_image_data(v_pos_data);

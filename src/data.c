@@ -16,7 +16,7 @@ char *fgetl(FILE *fp);
 
 
 /*
-åŠŸèƒ½ï¼šåˆ›å»ºä¸€ä¸ªé“¾è¡¨ï¼Œé“¾è¡¨ä¸­çš„æ¯ä¸ªå…ƒç´ ä»£è¡¨æ–‡ä»¶ä¸­çš„æ¯ä¸€åˆ—
+¹¦ÄÜ£º´´½¨Ò»¸öÁ´±í£¬Á´±íÖĞµÄÃ¿¸öÔªËØ´ú±íÎÄ¼şÖĞµÄÃ¿Ò»ÁĞ
 */
 List *get_lines(char *filename)
 {
@@ -36,8 +36,8 @@ List *get_lines(char *filename)
 
 
 /*
-åŠŸèƒ½ï¼šè£…è½½å›¾åƒæ•°æ®
-å‚æ•°ï¼šimages-å›¾åƒæ•°æ®ç›®å½•æ–‡ä»¶
+¹¦ÄÜ£º×°ÔØÍ¼ÏñÊı¾İ
+²ÎÊı£ºimages-Í¼ÏñÊı¾İÄ¿Â¼ÎÄ¼ş
 */
 Data load_image_data(char *images)
 {
@@ -65,7 +65,7 @@ Data load_image_data(char *images)
 
 
 /*
-åŠŸèƒ½ï¼šå‡†å¤‡æ­£æ ·æœ¬æ•°æ®ï¼Œå’Œè´Ÿæ ·æœ¬ä¸åŒï¼Œæ­£æ ·æœ¬åœ¨è®­ç»ƒè¿‡ç¨‹ä¸­ä¸€ç›´æŒæœ‰
+¹¦ÄÜ£º×¼±¸ÕıÑù±¾Êı¾İ£¬ºÍ¸ºÑù±¾²»Í¬£¬ÕıÑù±¾ÔÚÑµÁ·¹ı³ÌÖĞÒ»Ö±³ÖÓĞ
 */
 void prepare_pos_examples(Data data)
 {
@@ -85,10 +85,10 @@ void prepare_pos_examples(Data data)
 
 
 /*
-åŠŸèƒ½ï¼šå¯¹æ­£æ ·æœ¬è¿›è¡Œé¢„å¤„ç†è·å¾—è®­ç»ƒæ ·æœ¬
-å¤‡æ³¨ï¼šå¯¹æ­£æ ·æœ¬è¿›è¡Œå½’ä¸€åŒ–å¤„ç†ï¼Œå¹¶è®¡ç®—ç§¯åˆ†å›¾åƒ
-    æ­£æ ·æœ¬å’Œè´Ÿæ ·æœ¬å¤„ç†ä¸åŒï¼Œè´Ÿæ ·æœ¬éœ€è¦è£å‡å‡ºå­çª—åï¼Œåœ¨å­çª—å†…è¿›è¡Œå½’ä¸€åŒ–å’Œç§¯åˆ†å›¾åƒå¤„ç†
-    è€Œæ­£æ ·æœ¬å¯ä»¥ç›´æ¥å¯¹æ•´ä¸ªå›¾åƒè¿›è¡Œï¼ˆæ— éœ€è£å‡ï¼‰
+¹¦ÄÜ£º¶ÔÕıÑù±¾½øĞĞÔ¤´¦Àí»ñµÃÑµÁ·Ñù±¾
+±¸×¢£º¶ÔÕıÑù±¾½øĞĞ¹éÒ»»¯´¦Àí£¬²¢¼ÆËã»ı·ÖÍ¼Ïñ
+    ÕıÑù±¾ºÍ¸ºÑù±¾´¦Àí²»Í¬£¬¸ºÑù±¾ĞèÒª²Ã¼õ³ö×Ó´°ºó£¬ÔÚ×Ó´°ÄÚ½øĞĞ¹éÒ»»¯ºÍ»ı·ÖÍ¼Ïñ´¦Àí
+    ¶øÕıÑù±¾¿ÉÒÔÖ±½Ó¶ÔÕû¸öÍ¼Ïñ½øĞĞ£¨ÎŞĞè²Ã¼õ£©
 */
 Train_example * make_pos_example(Data data)
 {
@@ -106,14 +106,14 @@ Train_example * make_pos_example(Data data)
 
 
 /*
-åŠŸèƒ½ï¼šå¯¹è´Ÿæ ·æœ¬è¿›è¡Œé¢„å¤„ç†è·å¾—è®­ç»ƒæ ·æœ¬
-å‚æ•°ï¼šdata-å›¾åƒä¿¡æ¯
-     init_flag-æ˜¯å¦æ˜¯ç¬¬ä¸€æ¬¡è·å–æ ·æœ¬
-     example_num-éœ€è¦çš„æ ·æœ¬æ•°é‡
-     wnd_size-æ ·æœ¬å›¾åƒå¤§å°
-     m-çº§è”æ¨¡å‹,ç”¨äºç­›é€‰å‡é˜³æ€§æ ·æœ¬
-å¤‡æ³¨ï¼šåˆå§‹æ—¶éšæœºå–å‡ºæŒ‡å®šæ•°é‡çš„è´Ÿæ ·æœ¬æ•°æ®ï¼Œåœ¨è®­ç»ƒè¿‡ç¨‹ä¸­éœ€è¦æ ¹æ®æ¨¡å‹æŒ‘é€‰å‡ºæŒ‡å®šæ•°é‡çš„å‡é˜³æ€§æ ·æœ¬
-     å½“fprï¼ˆå‡é˜³æ€§ç‡ï¼‰æå°æ—¶ï¼Œå‡é˜³æ€§æ ·æœ¬å¾ˆéš¾è·å–ï¼Œæ­¤æ—¶é‡‡ç”¨éå†æ‰€æœ‰å›¾ç‰‡çš„æ–¹å¼å¯»æ‰¾
+¹¦ÄÜ£º¶Ô¸ºÑù±¾½øĞĞÔ¤´¦Àí»ñµÃÑµÁ·Ñù±¾
+²ÎÊı£ºdata-Í¼ÏñĞÅÏ¢
+     init_flag-ÊÇ·ñÊÇµÚÒ»´Î»ñÈ¡Ñù±¾
+     example_num-ĞèÒªµÄÑù±¾ÊıÁ¿
+     wnd_size-Ñù±¾Í¼Ïñ´óĞ¡
+     m-¼¶ÁªÄ£ĞÍ,ÓÃÓÚÉ¸Ñ¡¼ÙÑôĞÔÑù±¾
+±¸×¢£º³õÊ¼Ê±Ëæ»úÈ¡³öÖ¸¶¨ÊıÁ¿µÄ¸ºÑù±¾Êı¾İ£¬ÔÚÑµÁ·¹ı³ÌÖĞĞèÒª¸ù¾İÄ£ĞÍÌôÑ¡³öÖ¸¶¨ÊıÁ¿µÄ¼ÙÑôĞÔÑù±¾
+     µ±fpr£¨¼ÙÑôĞÔÂÊ£©¼«Ğ¡Ê±£¬¼ÙÑôĞÔÑù±¾ºÜÄÑ»ñÈ¡£¬´ËÊ±²ÉÓÃ±éÀúËùÓĞÍ¼Æ¬µÄ·½Ê½Ñ°ÕÒ
 */
 Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 wnd_size, Model *model, float fpr, float scale_size, i32 step_size)
 {
@@ -123,20 +123,20 @@ Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 w
     float var;
     i32 i, j, k;
     image cropped, candidate;
-    static i32 im_idx_recorder = 0;/*è®°å½•ä¸Šä¸€æ¬¡æŠ½å–æ ·æœ¬çš„å›¾ç‰‡ç´¢å¼•*/
+    static i32 im_idx_recorder = 0;/*¼ÇÂ¼ÉÏÒ»´Î³éÈ¡Ñù±¾µÄÍ¼Æ¬Ë÷Òı*/
     Train_example *examples;
 
     //srand(1);
-    if(init_flag == 1 || fpr > 10e-5)/*é¦–æ¬¡è·å–æ ·æœ¬æˆ–è€…å‡é˜³æ€§ç‡è¾ƒé«˜*/
+    if(init_flag == 1 || fpr > (1.2 * 10e-4))/*Ê×´Î»ñÈ¡Ñù±¾»òÕß¼ÙÑôĞÔÂÊ½Ï¸ß*/
     {
-        /*é‡‡ç”¨éšæœºæˆªå–çš„æ–¹æ³•è·å–å‡é˜³æ€§æ ·æœ¬*/
+        /*²ÉÓÃËæ»ú½ØÈ¡µÄ·½·¨»ñÈ¡¼ÙÑôĞÔÑù±¾*/
         examples = (Train_example*)malloc(sizeof(Train_example) * example_num);
         while(count < example_num)
         {
             i32 im_idx = rand() % im_size;
             i32 w = data.im_array[im_idx].w;
             i32 h = data.im_array[im_idx].h;
-            if(w < wnd_size || h < wnd_size)/*å›¾ç‰‡å¤ªå°*/
+            if(w < wnd_size || h < wnd_size)/*Í¼Æ¬Ì«Ğ¡*/
             {   
                 continue;
            }
@@ -147,7 +147,7 @@ Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 w
             var = calc_im_var(cropped, mean);
             candidate = normalize_integral_image(cropped, mean, var);
             free_image(cropped);
-            if(var < 1 || (init_flag == 0 && 1 != model_func(model, candidate)))/*æ–¹å·®å¤ªå°ï¼Œæ•°æ®å¯¹æ¨¡å‹æ²¡æœ‰å¸®åŠ©*/
+            if(var < 1 || (init_flag == 0 && 1 != model_func(model, candidate)))/*·½²îÌ«Ğ¡£¬Êı¾İ¶ÔÄ£ĞÍÃ»ÓĞ°ïÖú*/
             {
                 //free_image(cropped);
                 free_image(candidate);
@@ -159,9 +159,9 @@ Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 w
             count++;
         }
     }
-    else/*å‡é˜³æ€§ç‡æä½*/
+    else/*¼ÙÑôĞÔÂÊ¼«µÍ*/
     {
-        /*ä¾æ¬¡æ‰«ææ¯å¼ è´Ÿæ ·æœ¬å›¾ç‰‡è·å–å‡é˜³æ€§æ ·æœ¬*/
+        /*ÒÀ´ÎÉ¨ÃèÃ¿ÕÅ¸ºÑù±¾Í¼Æ¬»ñÈ¡¼ÙÑôĞÔÑù±¾*/
         examples = collect_false_positives(data, model, example_num, wnd_size, scale_size, step_size);
     }
    
@@ -170,7 +170,7 @@ Train_example *make_neg_example(Data data, i32 init_flag, i32 example_num, i32 w
 
 
 /*
-åŠŸèƒ½ï¼šå°†æ­£è´Ÿæ ·æœ¬åˆå¹¶
+¹¦ÄÜ£º½«Õı¸ºÑù±¾ºÏ²¢
 */
 Train_example *merge_pos_neg(Train_example *pos, i32 pos_num, Train_example *neg, i32 neg_num)
 {
@@ -182,13 +182,13 @@ Train_example *merge_pos_neg(Train_example *pos, i32 pos_num, Train_example *neg
 
 
 /*
-åŠŸèƒ½ï¼šåˆ›å»ºå¯å¹¶è¡Œå¤„ç†çš„æ ·æœ¬å†…å­˜ç©ºé—´
-å¤‡æ³¨ï¼šè¯¥å†…å­˜ç©ºé—´å¯ç”¨äºå¯»æ‰¾æœ€ä½³å†³ç­–æ¡©æ—¶çš„å¹¶è¡Œå¤„ç†è¿‡ç¨‹
+¹¦ÄÜ£º´´½¨¿É²¢ĞĞ´¦ÀíµÄÑù±¾ÄÚ´æ¿Õ¼ä
+±¸×¢£º¸ÃÄÚ´æ¿Õ¼ä¿ÉÓÃÓÚÑ°ÕÒ×î¼Ñ¾ö²ß×®Ê±µÄ²¢ĞĞ´¦Àí¹ı³Ì
 */
 Feat_info **make_parallel_examples(i32 example_num, i32 feat_num)
 {
     i32 i;
-    Feat_info **parallel_examples = (Feat_info**)malloc(sizeof(Feat_info*) * feat_num);/*ç”¨äºå¹¶è¡Œè®¡ç®—ï¼Œæé«˜é€Ÿåº¦*/
+    Feat_info **parallel_examples = (Feat_info**)malloc(sizeof(Feat_info*) * feat_num);/*ÓÃÓÚ²¢ĞĞ¼ÆËã£¬Ìá¸ßËÙ¶È*/
 
     for(i = 0; i < feat_num; i++)
     {
@@ -199,7 +199,7 @@ Feat_info **make_parallel_examples(i32 example_num, i32 feat_num)
 
 
 /*
-åŠŸèƒ½ï¼šé‡Šæ”¾å¹¶è¡Œå¤„ç†çš„æ ·æœ¬å†…å­˜ç©ºé—´
+¹¦ÄÜ£ºÊÍ·Å²¢ĞĞ´¦ÀíµÄÑù±¾ÄÚ´æ¿Õ¼ä
 */
 void free_parallel_examples(Feat_info **parallel_examples, i32 feat_num)
 {
@@ -214,7 +214,7 @@ void free_parallel_examples(Feat_info **parallel_examples, i32 feat_num)
 
 
 /*
-åŠŸèƒ½ï¼šé‡Šæ”¾å›¾ç‰‡æ•°æ®
+¹¦ÄÜ£ºÊÍ·ÅÍ¼Æ¬Êı¾İ
 */
 void free_image_data(Data data)
 {
@@ -228,12 +228,12 @@ void free_image_data(Data data)
 
 
 /*
-åŠŸèƒ½ï¼šè¡¥å……å‡é˜³æ€§æ ·æœ¬
+¹¦ÄÜ£º²¹³ä¼ÙÑôĞÔÑù±¾
 */
 Train_example *collect_false_positives(Data data, Model *model, i32 example_num, i32 wnd_size, float scale_size, i32 step_size)
 {
     Train_example *examples = (Train_example*)malloc(sizeof(Train_example) * example_num);
-    static i32 im_idx_recorder = 0;/*è®°å½•ä¹‹å‰æ”¶é›†å‡é˜³æ€§æ ·æœ¬çš„å›¾åƒç´¢å¼•*/
+    static i32 im_idx_recorder = 0;/*¼ÇÂ¼Ö®Ç°ÊÕ¼¯¼ÙÑôĞÔÑù±¾µÄÍ¼ÏñË÷Òı*/
     i32 count = 0;
     vector<Sub_wnd> candidate;
     i32 i;
@@ -254,11 +254,13 @@ Train_example *collect_false_positives(Data data, Model *model, i32 example_num,
                 examples[count].label = -1;
                 count++;
             }
-            else/*é‡Šæ”¾æ”¶é›†çš„è¶…è¿‡æŒ‡å®šæ ·æœ¬æ•°é‡çš„å‡é˜³æ€§æ ·æœ¬ï¼Œåœ¨è®­ç»ƒåæœŸåŸºæœ¬ä¸ä¼šå‘ç”Ÿï¼Œå› ä¸ºä¸€å‰¯å›¾åƒäº§ç”Ÿçš„å‡é˜³æ€§æ ·æœ¬å¾ˆæœ‰é™*/
+            else/*ÊÍ·ÅÊÕ¼¯µÄ³¬¹ıÖ¸¶¨Ñù±¾ÊıÁ¿µÄ¼ÙÑôĞÔÑù±¾£¬ÔÚÑµÁ·ºóÆÚ»ù±¾²»»á·¢Éú£¬ÒòÎªÒ»¸±Í¼Ïñ²úÉúµÄ¼ÙÑôĞÔÑù±¾ºÜÓĞÏŞ*/
             {
                 free_image(candidate[i].integ);
             }
         }
+        times("");
+        printf("replenish examples %d/%d\n", count, example_num);
         candidate.resize(0);
         im_idx_recorder++;
     }   
@@ -268,7 +270,7 @@ Train_example *collect_false_positives(Data data, Model *model, i32 example_num,
 
 
 /*
-åŠŸèƒ½ï¼š
+¹¦ÄÜ£º
 */
 
 

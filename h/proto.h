@@ -14,14 +14,14 @@ float calc_haar_feat_val(image integ, Haar_feat *pFeat);
 
 /*classifier.c*/
 void calc_example_feat_val(Feat_info *parallel_examples, Train_example *array, i32 example_num, Haar_feat *pFeat);
-Stump *find_best_stump(Feat_info **parallel_examples, Train_example *array, i32 example_num, Haar_feat *feat_array, i32 feat_num);
+Stump *find_best_stump(Feat_info **parallel_examples, i32 example_num, Haar_feat *feat_array, i32 feat_num);
 double test_stump(Stump *stmp, Train_example *examples, i32 example_num);
 double test_stage(Stage *s, Train_example *examples, i32 example_num);
 i8 stump_func(Stump *stmp, image integ, i32 train_flag);
 i8 stage_func(Stage *s, image integ, i32 train_flag);
 Stage *adaboost(Feat_info **parallel_examples, Train_example *examples, i32 example_num, i32 pos_num, i32 neg_num, Haar_feat *feat_array, i32 feat_num, i32 depth);
 void add_stump_2_stage(Stage *s, Feat_info** parallel_examples, Train_example *examples, i32 example_num, Haar_feat *feat_array, i32 feat_num);
-
+i8 stump_judge(Stump *stump, float feat_val);
 
 /*model.h*/
 i8 save_model(Model *m, const char* path);
@@ -40,6 +40,7 @@ void free_model(Model *model, i32 is_load_model);
 i32 get_detect_wnd_size(Model *model);
 double evaluate_model(Model *model, Train_example *examples, i32 example_num);
 void detect(Model *model, i32 skin_test_flag, char *infile, char *save_path);
+i32 is_inside(Sub_wnd w1, Sub_wnd w2);
 
 /*utils.h*/
 void assertion_failure(char *exp, char *file, char *base_file, int line);
@@ -70,5 +71,8 @@ int option_find_int(List *l, char *key, int def);
 List *read_data_cfg(char *filename);
 double option_find_float(List *l, char *key, double def);
 
+
+/*postprocess.c*/
+void postprocess(std::vector<Sub_wnd>& candidate);
 
 #endif

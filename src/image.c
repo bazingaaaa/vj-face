@@ -14,8 +14,8 @@ static void add_pixel(image m, int x, int y, int c, float val);
 
 
 /*
-åŠŸèƒ½ï¼šç”Ÿæˆç§¯åˆ†å›¾åƒ
-å¤‡æ³¨ï¼šå¯¹åº”è®ºæ–‡An Analysis of the Viola-Jones Face Detection Algorithmä¸­çš„ç®—æ³•2
+¹¦ÄÜ£ºÉú³É»ı·ÖÍ¼Ïñ
+±¸×¢£º¶ÔÓ¦ÂÛÎÄAn Analysis of the Viola-Jones Face Detection AlgorithmÖĞµÄËã·¨2
 */
 image make_intergral_image(image im)
 {
@@ -38,8 +38,8 @@ image make_intergral_image(image im)
 
 
 /*
-åŠŸèƒ½ï¼šåˆ©ç”¨ç§¯åˆ†å›¾åƒæ±‚æŒ‡å®šåŒºåŸŸå†…çš„åƒç´ ä¹‹å’Œ
-å¤‡æ³¨ï¼šiå’Œjçš„æ–¹å‘ä¸get_pixelé‡Œçš„x/yæ–¹å‘æœ‰æ‰€ä¸åŒ
+¹¦ÄÜ£ºÀûÓÃ»ı·ÖÍ¼ÏñÇóÖ¸¶¨ÇøÓòÄÚµÄÏñËØÖ®ºÍ
+±¸×¢£ºiºÍjµÄ·½ÏòÓëget_pixelÀïµÄx/y·½ÏòÓĞËù²»Í¬
 */
 float calc_im_sum(image integ, i32 iBeg, i32 iEnd, i32 jBeg, i32 jEnd)
 {
@@ -52,7 +52,7 @@ float calc_im_sum(image integ, i32 iBeg, i32 iEnd, i32 jBeg, i32 jEnd)
 
 
 /*
-åŠŸèƒ½ï¼šè®¡ç®—å›¾åƒå‡å€¼
+¹¦ÄÜ£º¼ÆËãÍ¼Ïñ¾ùÖµ
 */
 float calc_im_mean(image im)
 {
@@ -68,7 +68,7 @@ float calc_im_mean(image im)
 
 
 /*
-åŠŸèƒ½ï¼šè®¡ç®—å›¾åƒæ–¹å·®
+¹¦ÄÜ£º¼ÆËãÍ¼Ïñ·½²î
 */
 float calc_im_var(image im, float mean)
 {
@@ -86,7 +86,7 @@ float calc_im_var(image im, float mean)
 
 
 /*
-åŠŸèƒ½ï¼šå›¾åƒå½’ä¸€åŒ–ï¼ˆin-placeï¼‰
+¹¦ÄÜ£ºÍ¼Ïñ¹éÒ»»¯£¨in-place£©
 */
 void normalize_image(image im, float mean, float var)
 {
@@ -100,8 +100,8 @@ void normalize_image(image im, float mean, float var)
 
 
 /*
-åŠŸèƒ½ï¼šå›¾åƒå½’ä¸€åŒ–å’Œç§¯åˆ†å›¾åƒ
-å¤‡æ³¨ï¼šç”¨ä¸€æ¬¡éå†å®Œæˆå›¾åƒå½’ä¸€åŒ–å’Œç§¯åˆ†å›¾åƒæ±‚è§£è¿‡ç¨‹
+¹¦ÄÜ£ºÍ¼Ïñ¹éÒ»»¯ºÍ»ı·ÖÍ¼Ïñ
+±¸×¢£ºÓÃÒ»´Î±éÀúÍê³ÉÍ¼Ïñ¹éÒ»»¯ºÍ»ı·ÖÍ¼ÏñÇó½â¹ı³Ì
 */
 image normalize_integral_image(image im, float mean, float var)
 {
@@ -126,7 +126,7 @@ image normalize_integral_image(image im, float mean, float var)
 
 
 /*
-åŠŸèƒ½ï¼šæ‹·è´å›¾åƒ
+¹¦ÄÜ£º¿½±´Í¼Ïñ
 */
 image copy_image(image im)
 {
@@ -137,7 +137,7 @@ image copy_image(image im)
 
 
 /*
-åŠŸèƒ½ï¼šé™åˆ¶å›¾åƒåƒç´ å€¼
+¹¦ÄÜ£ºÏŞÖÆÍ¼ÏñÏñËØÖµ
 */
 void constrain_image(image im)
 {
@@ -150,7 +150,7 @@ void constrain_image(image im)
 
 
 /*
-åŠŸèƒ½:è·å–åƒç´ å€¼
+¹¦ÄÜ:»ñÈ¡ÏñËØÖµ
 */
 float get_pixel_extend(image m, int x, int y)
 {
@@ -160,7 +160,7 @@ float get_pixel_extend(image m, int x, int y)
 
 
 /*
-åŠŸèƒ½:è®¾ç½®åƒç´ å€¼
+¹¦ÄÜ:ÉèÖÃÏñËØÖµ
 */
 void set_pixel_extend(image im, int x, int y, float v)
 {
@@ -169,7 +169,7 @@ void set_pixel_extend(image im, int x, int y, float v)
 
 
 /*
-åŠŸèƒ½:è·å–åƒç´ å€¼
+¹¦ÄÜ:»ñÈ¡ÏñËØÖµ
 */
 float get_pixel(image m, int x, int y, int c)
 {
@@ -179,7 +179,7 @@ float get_pixel(image m, int x, int y, int c)
 
 
 /*
-åŠŸèƒ½:è®¾ç½®åƒç´ å€¼
+¹¦ÄÜ:ÉèÖÃÏñËØÖµ
 */
 void set_pixel(image im, int x, int y, int c, float v)
 {
@@ -192,7 +192,7 @@ void set_pixel(image im, int x, int y, int c, float v)
 
 
 /*
-åŠŸèƒ½ï¼šè£å‡å›¾ç‰‡
+¹¦ÄÜ£º²Ã¼õÍ¼Æ¬
 */
 image crop_image(image im, int dx, int dy, int w, int h)
 {
@@ -216,13 +216,13 @@ image crop_image(image im, int dx, int dy, int w, int h)
 
 
 /*
-åŠŸèƒ½ï¼šè£å‡å›¾ç‰‡
+¹¦ÄÜ£º²Ã¼õÍ¼Æ¬
 */
 image crop_image_extend(image im, int dx, int dy, int w, int h)
 {
     image cropped = make_image(w, h, 1);
     int i, j;
-    #pragma omp parallel for private(j, i)
+    #pragma omp parallel for private(j, i) num_threads(32)
     for(j = 0; j < h; ++j){
         for(i = 0; i < w; ++i){
             int r = j + dy;
@@ -237,7 +237,7 @@ image crop_image_extend(image im, int dx, int dy, int w, int h)
 
 
 /*
-åŠŸèƒ½ï¼šäºŒç»´é«˜æ–¯å‡½æ•°
+¹¦ÄÜ£º¶şÎ¬¸ßË¹º¯Êı
 */
 float gaissian2d(int x, int y, float sigma)
 {
@@ -246,7 +246,7 @@ float gaissian2d(int x, int y, float sigma)
 
 
 /*
-åŠŸèƒ½ï¼šç”Ÿæˆé«˜æ–¯æ»¤æ³¢å™¨
+¹¦ÄÜ£ºÉú³É¸ßË¹ÂË²¨Æ÷
 */
 image make_gaussian_filter(float sigma)
 {
@@ -269,8 +269,8 @@ image make_gaussian_filter(float sigma)
 
 
 /*
-åŠŸèƒ½ï¼šå¯¹ç°åº¦å›¾åƒè¿›è¡Œå·ç§¯
-å¤‡æ³¨ï¼šå¤„ç†å›¾åƒè¾¹ç•Œæ—¶ç”¨æœ€é‚»è¿‘çš„å…ƒç´ å¡«å……
+¹¦ÄÜ£º¶Ô»Ò¶ÈÍ¼Ïñ½øĞĞ¾í»ı
+±¸×¢£º´¦ÀíÍ¼Ïñ±ß½çÊ±ÓÃ×îÁÚ½üµÄÔªËØÌî³ä
 */
 image convolve_image(image im, image filter)
 {
@@ -309,7 +309,7 @@ image convolve_image(image im, image filter)
 
 
 /*
-åŠŸèƒ½ï¼šå¯¹ç°åº¦å›¾åƒè¿›è¡Œé«˜æ–¯æ»¤æ³¢
+¹¦ÄÜ£º¶Ô»Ò¶ÈÍ¼Ïñ½øĞĞ¸ßË¹ÂË²¨
 */
 image gaussian_filter_image(image im, float sigma)
 {
@@ -321,47 +321,48 @@ image gaussian_filter_image(image im, float sigma)
 
 
 /*
-åŠŸèƒ½ï¼šå°†è¾“å…¥å›¾åƒé™é‡‡æ ·åªæŒ‡å®šå¤§å°
-å¤‡æ³¨ï¼šå¯¹åº”è®ºæ–‡An Analysis of the Viola-Jones Face Detection Algorithmä¸­çš„ç®—æ³•8 
-     éin-place åŸå›¾åƒè¢«é‡Šæ”¾
+¹¦ÄÜ£º½«ÊäÈëÍ¼Ïñ½µ²ÉÑùÖ»Ö¸¶¨´óĞ¡
+±¸×¢£º¶ÔÓ¦ÂÛÎÄAn Analysis of the Viola-Jones Face Detection AlgorithmÖĞµÄËã·¨8 
+     ·Çin-place Ô­Í¼Ïñ±»ÊÍ·Å
 */
 image down_sample(image im, i32 wnd_size)
 {
-    i32 i, j;
+    i32 i, j, ij;
     i32 e = im.w;
     float i_new, j_new;
     i32 i_new_min, i_new_max, j_new_min, j_new_max;
     float pixel_val;
     assert(e > wnd_size);
-    float sigma = 0.6 * sqrt((e * 1.0 / wnd_size) * (e * 1.0 / wnd_size) - 1);/*è®ºæ–‡ä¸­ç»™å‡ºçš„å…¬å¼*/
-    image im_smooth = gaussian_filter_image(im, sigma);
+    //float sigma = 0.6 * sqrt((e * 1.0 / wnd_size) * (e * 1.0 / wnd_size) - 1);/*ÂÛÎÄÖĞ¸ø³öµÄ¹«Ê½*/
+    //image im_smooth = gaussian_filter_image(im, sigma);
+    image im_smooth = im;
     image out = make_image(wnd_size, wnd_size, 1);
 
-    for(i = 0; i < wnd_size; i++)
+    #pragma omp parallel for num_threads(16) schedule(static)
+    for(ij = 0; ij < wnd_size * wnd_size; ij++)
     {
-        for(j = 0; j < wnd_size; j++)
-        {
-            i_new = (e - 1) * 1.0 / (wnd_size + 1) * (i + 1);
-            j_new = (e - 1) * 1.0 / (wnd_size + 1) * (j + 1);
-            i_new_max = MIN(NEAREST_INTEGER(i_new) + 1, e - 1);
-            i_new_min = MAX(NEAREST_INTEGER(i_new), 0);
-            j_new_max = MIN(NEAREST_INTEGER(j_new) + 1, e - 1);
-            j_new_min = MAX(NEAREST_INTEGER(j_new), 0);
-            pixel_val = 1.0 / 4 * (get_pixel_extend(im_smooth, i_new_max, j_new_max)
-                                 + get_pixel_extend(im_smooth, i_new_min, j_new_max)
-                                 + get_pixel_extend(im_smooth, i_new_min, j_new_min)
-                                 + get_pixel_extend(im_smooth, i_new_max, j_new_min));
-            set_pixel_extend(out, i, j, pixel_val);
-        }
+        i = ij / wnd_size;
+        j = ij % wnd_size;
+        i_new = (e - 1) * 1.0 / (wnd_size + 1) * (i + 1);
+        j_new = (e - 1) * 1.0 / (wnd_size + 1) * (j + 1);
+        i_new_max = MIN(NEAREST_INTEGER(i_new) + 1, e - 1);
+        i_new_min = MAX(NEAREST_INTEGER(i_new), 0);
+        j_new_max = MIN(NEAREST_INTEGER(j_new) + 1, e - 1);
+        j_new_min = MAX(NEAREST_INTEGER(j_new), 0);
+        pixel_val = 1.0 / 4 * (get_pixel_extend(im_smooth, i_new_max, j_new_max)
+                             + get_pixel_extend(im_smooth, i_new_min, j_new_max)
+                             + get_pixel_extend(im_smooth, i_new_min, j_new_min)
+                             + get_pixel_extend(im_smooth, i_new_max, j_new_min));
+        set_pixel_extend(out, i, j, pixel_val);
     }
-    free_image(im_smooth);
+    //free_image(im_smooth);
     return out;
 }
 
 
 /*
-åŠŸèƒ½ï¼šåœ¨è¢«æ£€æµ‹å›¾åƒä¸Šç”»å‡ºæ£€æµ‹çª—ï¼ˆin-placeï¼‰
-å¤‡æ³¨ï¼šxä¸ºçºµè½´ï¼Œyä¸ºæ¨ªè½´
+¹¦ÄÜ£ºÔÚ±»¼ì²âÍ¼ÏñÉÏ»­³ö¼ì²â´°£¨in-place£©
+±¸×¢£ºxÎª×İÖá£¬yÎªºáÖá
 */
 void draw_box(image im, i32 x, i32 y, i32 w, i32 h, float r, float g, float b)
 {
@@ -403,7 +404,7 @@ void draw_box(image im, i32 x, i32 y, i32 w, i32 h, float r, float g, float b)
 
 
 /*
-åŠŸèƒ½ï¼šå°†rgbå›¾åƒè½¬æ¢ä¸ºç°åº¦å›¾åƒ
+¹¦ÄÜ£º½«rgbÍ¼Ïñ×ª»»Îª»Ò¶ÈÍ¼Ïñ
 */
 image rgb_to_grayscale(image im)
 {
@@ -423,7 +424,7 @@ image rgb_to_grayscale(image im)
 
 
 /*
-åŠŸèƒ½ï¼šå›¾åƒåƒç´ ä¹˜ä»¥ç‰¹å®šå€¼
+¹¦ÄÜ£ºÍ¼ÏñÏñËØ³ËÒÔÌØ¶¨Öµ
 */
 void scale_image(image m, float s)
 {
@@ -433,8 +434,8 @@ void scale_image(image m, float s)
 
 
 /*
-åŠŸèƒ½ï¼šé™åˆ¶å›¾ç‰‡å¤§å°
-å¤‡æ³¨ï¼šä½¿ç”¨billinearæ’å€¼æ³•
+¹¦ÄÜ£ºÏŞÖÆÍ¼Æ¬´óĞ¡
+±¸×¢£ºÊ¹ÓÃbillinear²åÖµ·¨
 */
 image constrain_image_size(image im, i32 size_limit)
 {
@@ -459,7 +460,7 @@ image constrain_image_size(image im, i32 size_limit)
 
 
 /*
-åŠŸèƒ½ï¼šè°ƒæ•´å›¾åƒå¤§å°
+¹¦ÄÜ£ºµ÷ÕûÍ¼Ïñ´óĞ¡
 */
 image resize_image(image im, int w, int h)
 {

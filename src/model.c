@@ -13,24 +13,28 @@
 using namespace std;
 
 /*
-åŠŸèƒ½ï¼šæ¨¡å‹åŠ è½½
-å¤‡æ³¨ï¼šé€šè¿‡æ–‡ä»¶åŠ è½½æ¨¡å‹
+¹¦ÄÜ£ºÄ£ĞÍ¼ÓÔØ
+±¸×¢£ºÍ¨¹ıÎÄ¼ş¼ÓÔØÄ£ĞÍ
 */
 Model *load_model(const char* path)
 {
+	if(NULL == path)
+	{
+		return NULL;
+	}
 	char magic = 0xcc;
 	Model *m = (Model*)malloc(sizeof(Model));
 	FILE *fp = fopen(path, "rb");
 	char ch;
 	i32 i, j;
 
-	if(NULL == fp)/*æ— æ•ˆæ–‡ä»¶*/
+	if(NULL == fp)/*ÎŞĞ§ÎÄ¼ş*/
 	{
 		printf("modelfile doesn't exist!\n");
 		return NULL;
 	}
 	fread(&ch, sizeof(char), 1, fp);
-	if(magic != ch)/*éæ¨¡å‹æ–‡ä»¶*/
+	if(magic != ch)/*·ÇÄ£ĞÍÎÄ¼ş*/
 	{
 		printf("%s is not a valid modelfile!\n", path);
 		return NULL;
@@ -41,28 +45,35 @@ Model *load_model(const char* path)
 	Stage *stage = (Stage*)malloc(sizeof(Stage) * m->stage_num);
 	m->head_stage = stage;
 
+	/*°´Ë³Ğò¼ÓÔØÃ¿¸östage*/
 	for(i = 0; i < m->stage_num; i++)
 	{
+		i32 stump_num;
 		fread(&stage[i], sizeof(Stage), 1, fp);
 		Stump *stump = (Stump*)malloc(sizeof(Stump) * stage[i].stump_num);
 		stage[i].head_stump = stump;
-		for(j = 0; j < stage[i].stump_num; j++)
+		stump_num = stage[i].stump_num;
+		for(j = 0; j < stump_num; j++)
 		{
 			fread(&stump[j], sizeof(Stump), 1, fp);
+
 			if(j != (stage[i].stump_num - 1))
 			{
 				stump[j].next_stump = &stump[j + 1];
 			}
 		}
-		/*æœ€åä¸€ä¸ªå†³ç­–æ¡©*/
-		stage[i].tail_stump = &stump[j];
-		stump[j].next_stump = NULL;
+		/*×îºóÒ»¸ö¾ö²ß×®*/
+		stage[i].tail_stump = &stump[j - 1];
+		stump[j - 1].next_stump = NULL;
 		if(i != (m->stage_num - 1))
 		{
 			stage[i].next_stage = &stage[i + 1];
 		}
 	}
-	stage[i].next_stage = NULL;
+	stage[i - 1].next_stage = NULL;
+
+	printf("load model successfully\n");
+	printf("initial model: stage_num:%d fpr:%.10lf\n", m->stage_num, m->fpr);
 
 	fclose(fp);
 	
@@ -71,24 +82,24 @@ Model *load_model(const char* path)
 
 
 /*
-åŠŸèƒ½ï¼šä¿å­˜æ¨¡å‹
-å‚æ•°ï¼šm-å¾…ä¿å­˜çš„æ¨¡å‹
-	 path-æ¨¡å‹ä¿å­˜çš„è·¯å¾„
-å¤‡æ³¨ï¼šå°†æ¨¡å‹ä¿å­˜è‡³æ–‡ä»¶ç³»ç»Ÿ
+¹¦ÄÜ£º±£´æÄ£ĞÍ
+²ÎÊı£ºm-´ı±£´æµÄÄ£ĞÍ
+	 path-Ä£ĞÍ±£´æµÄÂ·¾¶
+±¸×¢£º½«Ä£ĞÍ±£´æÖÁÎÄ¼şÏµÍ³
 */
 i8 save_model(Model *m, const char* path)
 {
 	char magic = 0xcc;
 	FILE *fp = fopen(path, "wb");
-	if(NULL == fp)/*é”™è¯¯æ–‡ä»¶*/
+	if(NULL == fp)/*´íÎóÎÄ¼ş*/
 	{
 		printf("save model error!\n");
 		return -1;
 	}
-	/*å†™å…¥magic No*/
+	/*Ğ´Èëmagic No*/
 	fwrite(&magic, sizeof(char), 1, fp);
 
-	/*å°†æ¨¡å‹å†™å…¥æ–‡ä»¶*/
+	/*½«Ä£ĞÍĞ´ÈëÎÄ¼ş*/
 	i32 stage_count = 0;
 	Stage *stage = m->head_stage;
 	
@@ -97,7 +108,7 @@ i8 save_model(Model *m, const char* path)
 
 	while(stage_count < m->stage_num)
 	{
-		//printf("stage_count:%d stage_numï¼š%d\n", stage_count, m->stage_num);
+		//printf("stage_count:%d stage_num£º%d\n", stage_count, m->stage_num);
 		i32 stump_count = 0;
 		Stump *stmp = stage->head_stump;
 		fwrite(stage, sizeof(Stage), 1, fp);
@@ -119,11 +130,11 @@ i8 save_model(Model *m, const char* path)
 
 
 /*
-åŠŸèƒ½ï¼šæ¨¡å‹æ¨æ–­å‡½æ•°
-å‚æ•°ï¼šm-æ¨¡å‹
-	 integ-æ¨¡å‹è¾“å…¥ï¼ˆç§¯åˆ†å›¾åƒï¼‰
-è¿”å›å€¼ï¼š1-æ­£æ ·æœ¬
-      -1-è´Ÿæ ·æœ¬
+¹¦ÄÜ£ºÄ£ĞÍÍÆ¶Ïº¯Êı
+²ÎÊı£ºm-Ä£ĞÍ
+	 integ-Ä£ĞÍÊäÈë£¨»ı·ÖÍ¼Ïñ£©
+·µ»ØÖµ£º1-ÕıÑù±¾
+      -1-¸ºÑù±¾
 */
 i8 model_func(Model *m, image integ)
 {
@@ -146,8 +157,8 @@ i8 model_func(Model *m, image integ)
 
 
 /*
-åŠŸèƒ½ï¼šæ¨¡å‹æµ‹è¯•
-è¿”å›å€¼ï¼šæ­£ç¡®é¢„æµ‹çš„æ ·æœ¬æ•°å æ ·æœ¬æ€»æ•°çš„æ¯”ç‡
+¹¦ÄÜ£ºÄ£ĞÍ²âÊÔ
+·µ»ØÖµ£ºÕıÈ·Ô¤²âµÄÑù±¾ÊıÕ¼Ñù±¾×ÜÊıµÄ±ÈÂÊ
 */
 float test_model(Model *m, Train_example *examples, i32 example_num)
 {
@@ -166,9 +177,9 @@ float test_model(Model *m, Train_example *examples, i32 example_num)
 
 
 /*
-åŠŸèƒ½ï¼šåˆ¤æ–­çª—å£1çš„ä¸­å¿ƒæ˜¯å¦ä½äºçª—å£2ä¸­
-å‚æ•°ï¼š
-è¿”å›å€¼ï¼š1-æ˜¯ 0-å¦
+¹¦ÄÜ£ºÅĞ¶Ï´°¿Ú1µÄÖĞĞÄÊÇ·ñÎ»ÓÚ´°¿Ú2ÖĞ
+²ÎÊı£º
+·µ»ØÖµ£º1-ÊÇ 0-·ñ
 */
 i32 is_inside(Sub_wnd w1, Sub_wnd w2)
 {
@@ -177,7 +188,7 @@ i32 is_inside(Sub_wnd w1, Sub_wnd w2)
 	float center_j = w1.pos_j + w1.size / 2.0;
 
 	if(center_i > w2.pos_i && center_i < w2.pos_i + w2.size &&
-		center_i > w2.pos_i && center_i < w2.pos_i + w2.size)
+		center_j > w2.pos_j && center_j < w2.pos_j + w2.size)
 	{
 		ret = 1;
 	}
@@ -191,11 +202,11 @@ bool cmp(Sub_wnd wnd1, Sub_wnd wnd2)
 }
 
 /*
-åŠŸèƒ½ï¼šæ£€æµ‹åå¤„ç†ï¼Œå¯¹æ£€æµ‹çª—è¿›è¡Œè¿›ä¸€æ­¥ç­›é€‰ï¼Œå‰”é™¤æ‰è™šè­¦å’Œé‡å¤æ£€æµ‹
-å‚æ•°ï¼šcandidate-é€šè¿‡æ¨¡å‹æ£€æµ‹å‡ºæ¥çš„å›¾åƒä¸­çš„å€™é€‰çª—å£
-     confidence_thresh-ç½®ä¿¡åº¦é—¨é™ï¼Œå³ è¿é€šåˆ†é‡çš„æ•°é‡ / çª—å£å¤§å°
-å¤‡æ³¨ï¼šå¯¹åº”è®ºæ–‡An Analysis of the Viola-Jones Face Detection Algorithmä¸­çš„ç®—æ³•11
-     æ­¤å¤„ç”¨åˆ°äº†connected componentç®—æ³•ï¼ˆAli Rahimiæä¾›ï¼‰
+¹¦ÄÜ£º¼ì²âºó´¦Àí£¬¶Ô¼ì²â´°½øĞĞ½øÒ»²½É¸Ñ¡£¬ÌŞ³ıµôĞé¾¯ºÍÖØ¸´¼ì²â
+²ÎÊı£ºcandidate-Í¨¹ıÄ£ĞÍ¼ì²â³öÀ´µÄÍ¼ÏñÖĞµÄºòÑ¡´°¿Ú
+     confidence_thresh-ÖÃĞÅ¶ÈÃÅÏŞ£¬¼´ Á¬Í¨·ÖÁ¿µÄÊıÁ¿ / ´°¿Ú´óĞ¡
+±¸×¢£º¶ÔÓ¦ÂÛÎÄAn Analysis of the Viola-Jones Face Detection AlgorithmÖĞµÄËã·¨11
+     ´Ë´¦ÓÃµ½ÁËconnected componentËã·¨£¨Ali RahimiÌá¹©£©
 */
 void post_processing(vector<Sub_wnd> &candidate, i32 w, i32 h, float confidence_thresh)
 {
@@ -207,30 +218,30 @@ void post_processing(vector<Sub_wnd> &candidate, i32 w, i32 h, float confidence_
 	/**/
 	sort(candidate.begin(), candidate.end(), cmp);
 
-	/*ç”¨æ£€æµ‹çª—å¤§å°å¯¹è¾“å…¥çš„å›¾åƒè¿›è¡Œåˆå§‹åŒ–*/
+	/*ÓÃ¼ì²â´°´óĞ¡¶ÔÊäÈëµÄÍ¼Ïñ½øĞĞ³õÊ¼»¯*/
 	for(i = 0; i < wnd_num; i++)
 	{
 		in_img[candidate[i].pos_i * w + candidate[i].pos_j] = candidate[i].size;
 	}
 
-	/*æ‰§è¡Œconnected componentç®—æ³•*/
+	/*Ö´ĞĞconnected componentËã·¨*/
 	i32 *out_img = (i32*)calloc(w * h, sizeof(i32));
 	ConnectedComponents cc(30);
 	component_num = cc.connected(in_img, out_img, w, h, equal_to<int>(), true);
 	
-	/*å»ºç«‹è¿é€šåˆ†é‡idï¼Œåæ ‡å’Œçª—å£å¤§å°çš„å¯¹åº”å…³ç³»ï¼Œæœ‰ç®—æ³•ç”Ÿæˆçš„è¿é€šåˆ†é‡IDæ˜¯ä»0å¼€å§‹çš„è¿ç»­æ•´æ•°*/
+	/*½¨Á¢Á¬Í¨·ÖÁ¿id£¬×ø±êºÍ´°¿Ú´óĞ¡µÄ¶ÔÓ¦¹ØÏµ£¬ÓĞËã·¨Éú³ÉµÄÁ¬Í¨·ÖÁ¿IDÊÇ´Ó0¿ªÊ¼µÄÁ¬ĞøÕûÊı*/
 	vector<int> cc_labels(out_img, out_img + w * h);
 
-	/*å¯¹æ ‡è®°è¿‡çš„çª—å£è¿›è¡Œæ’åºï¼Œå¹¶ç¡®å®šæ¯ä¸ªè¿é€šåˆ†é‡çš„å¤§å°å’Œå¯¹åº”çš„ID*/
+	/*¶Ô±ê¼Ç¹ıµÄ´°¿Ú½øĞĞÅÅĞò£¬²¢È·¶¨Ã¿¸öÁ¬Í¨·ÖÁ¿µÄ´óĞ¡ºÍ¶ÔÓ¦µÄID*/
 	sort(cc_labels.begin(), cc_labels.end());
 
-	vector<int> cc_ids;/*æ¯ç§è¿é€šåˆ†é‡çš„ID*/
-	vector<int> cc_size;/*æ¯ç§è¿é€šåˆ†é‡çš„å¤§å°*/
+	vector<int> cc_ids;/*Ã¿ÖÖÁ¬Í¨·ÖÁ¿µÄID*/
+	vector<int> cc_size;/*Ã¿ÖÖÁ¬Í¨·ÖÁ¿µÄ´óĞ¡*/
 	cc_ids.push_back(cc_labels[0]);
 	cc_size.push_back(1);
 	i32 cur_cc_id = cc_labels[0];
 	i32 cc_id_idx = 0;
-	/*æ¯ä¸ªè¿é€šåˆ†é‡ä»…ä¿ç•™ä¸€ä¸ªçª—å£ä½œä¸ºä»£è¡¨*/
+	/*Ã¿¸öÁ¬Í¨·ÖÁ¿½ö±£ÁôÒ»¸ö´°¿Ú×÷Îª´ú±í*/
 	for(i = 1; i < w * h; i++) 
 	{
         if(cur_cc_id != cc_labels[i])
@@ -246,7 +257,7 @@ void post_processing(vector<Sub_wnd> &candidate, i32 w, i32 h, float confidence_
 		}
     }
 
-	/*å»æ‰ç½®ä¿¡åº¦è¾ƒä½çš„è¿é€šåˆ†é‡*/
+	/*È¥µôÖÃĞÅ¶È½ÏµÍµÄÁ¬Í¨·ÖÁ¿*/
 	vector<bool> flags;
 	flags.resize(component_num);
 	for(i = 0; i < component_num; i++)
@@ -269,7 +280,7 @@ void post_processing(vector<Sub_wnd> &candidate, i32 w, i32 h, float confidence_
 		}
 	}	
 	
-	/*å¯¹é‡å çš„çª—å£è¿›è¡Œå‰”é™¤*/
+	/*¶ÔÖØµşµÄ´°¿Ú½øĞĞÌŞ³ı*/
 	i32 nRepresentatives = representatives.size();
 	flags.resize(nRepresentatives);
 
@@ -297,7 +308,7 @@ void post_processing(vector<Sub_wnd> &candidate, i32 w, i32 h, float confidence_
 		}
 	}
 
-	/*æ”¶é›†å‰©ä½™çš„æ£€æµ‹çª—*/
+	/*ÊÕ¼¯Ê£ÓàµÄ¼ì²â´°*/
 	candidate.resize(0);
 	for(i = 0; i < nRepresentatives; i++)
 	{
@@ -313,7 +324,7 @@ void post_processing(vector<Sub_wnd> &candidate, i32 w, i32 h, float confidence_
 
 
 /*
-åŠŸèƒ½ï¼šé‡Šæ”¾æ¨¡å‹å ç”¨çš„å†…å­˜
+¹¦ÄÜ£ºÊÍ·ÅÄ£ĞÍÕ¼ÓÃµÄÄÚ´æ
 */
 void free_model(Model *model, i32 is_load_model)
 {
@@ -321,7 +332,7 @@ void free_model(Model *model, i32 is_load_model)
 	{
 		return;
 	}
-	if(1 == is_load_model)/*æ˜¯åŠ è½½çš„æ¨¡å‹*/
+	if(1 == is_load_model)/*ÊÇ¼ÓÔØµÄÄ£ĞÍ*/
 	{
 		i32 i;
 		Stage *stage = model->head_stage;
@@ -330,9 +341,9 @@ void free_model(Model *model, i32 is_load_model)
 			free(stage->head_stump);
 			stage = stage->next_stage;
 		}
-		free(stage);
+		free(model->head_stage);
 	}
-	else/*éåŠ è½½çš„æ¨¡å‹*/
+	else/*·Ç¼ÓÔØµÄÄ£ĞÍ*/
 	{
 		Stage *cur_stage = model->head_stage;
 		Stage *next_stage = cur_stage->next_stage;
@@ -358,12 +369,12 @@ void free_model(Model *model, i32 is_load_model)
 
 
 /*
-åŠŸèƒ½ï¼šæ£€æµ‹ä¸€å‰¯å›¾åƒï¼Œå¹¶ç”»ä¸Šæ£€æµ‹æ¡†
-å‚æ•°ï¼šim-å¾…æ£€æµ‹å›¾åƒ
-     model-æ£€æµ‹ç”¨åˆ°çš„æ¨¡å‹
-     skin_test_flag-æ˜¯å¦è¿›è¡Œè‚¤è‰²æ£€æµ‹
-è¿”å›å€¼ï¼šç”»äº†æ£€æµ‹çª—çš„å›¾åƒ
-å¤‡æ³¨ï¼šå¯¹å›¾åƒä¸­çš„ç›®æ ‡è¿›è¡Œæ£€æµ‹ï¼Œå¹¶åœ¨å›¾åƒä¸Šç”»å‡ºæ£€æµ‹æ¡†
+¹¦ÄÜ£º¼ì²âÒ»¸±Í¼Ïñ£¬²¢»­ÉÏ¼ì²â¿ò
+²ÎÊı£ºim-´ı¼ì²âÍ¼Ïñ
+     model-¼ì²âÓÃµ½µÄÄ£ĞÍ
+     skin_test_flag-ÊÇ·ñ½øĞĞ·ôÉ«¼ì²â
+·µ»ØÖµ£º»­ÁË¼ì²â´°µÄÍ¼Ïñ
+±¸×¢£º¶ÔÍ¼ÏñÖĞµÄÄ¿±ê½øĞĞ¼ì²â£¬²¢ÔÚÍ¼ÏñÉÏ»­³ö¼ì²â¿ò
 */
 image run_detection(image im, Model *model, i32 skin_test_flag)
 {
@@ -380,11 +391,11 @@ image run_detection(image im, Model *model, i32 skin_test_flag)
 
 	scale_image(im, 255.0);
 
-	/*å¦‚æœå›¾åƒè¿‡å¤§ï¼ˆé•¿å’Œå®½é™åˆ¶åœ¨512ä»¥å†…ï¼Œä¿è¯ä¸€å®šçš„æ¨ªçºµæ¯”ï¼‰ï¼Œå¯¹å›¾åƒè¿›è¡Œresize*/
+	/*Èç¹ûÍ¼Ïñ¹ı´ó£¨³¤ºÍ¿íÏŞÖÆÔÚ512ÒÔÄÚ£¬±£Ö¤Ò»¶¨µÄºá×İ±È£©£¬¶ÔÍ¼Ïñ½øĞĞresize*/
  	im = constrain_image_size(im, 512);
 
 
-	/*å½©è‰²å›¾åƒè½¬æ¢ä¸ºç°åº¦å›¾åƒå†è¿›è¡Œæ£€æµ‹*/
+	/*²ÊÉ«Í¼Ïñ×ª»»Îª»Ò¶ÈÍ¼ÏñÔÙ½øĞĞ¼ì²â*/
 	if(3 == im.c)
 	{
 		im_gray = rgb_to_grayscale(im);
@@ -396,16 +407,17 @@ image run_detection(image im, Model *model, i32 skin_test_flag)
 	}
 	
 	times("scan_image begin ");
-	/*æ‰«ææ•´ä¸ªå›¾åƒï¼Œäº§ç”Ÿå€™é€‰çª—*/
- 	scan_image_for_testing(candidate, model, im_gray, wnd_size, 1.25, 12);
+	/*É¨ÃèÕû¸öÍ¼Ïñ£¬²úÉúºòÑ¡´°*/
+ 	scan_image_for_testing(candidate, model, im_gray, wnd_size, 1.5, 1);
 	
-	/*åå¤„ç†ï¼Œè¿›ä¸€æ­¥å‰”é™¤false positive*/
+	/*ºó´¦Àí£¬½øÒ»²½ÌŞ³ıfalse positive*/
 	//post_processing(candidate, im_gray.w, im_gray.h, 3.0 / wnd_size);
+	//postprocess(candidate);
 
-	/*åœ¨è¢«æ£€æµ‹å›¾åƒä¸Šç”»å‡ºæ£€æµ‹æ¡†*/
+	/*ÔÚ±»¼ì²âÍ¼ÏñÉÏ»­³ö¼ì²â¿ò*/
 	for(i = 0; i < candidate.size(); i++)
 	{
-		if(skin_test_flag && !skin_test(im, candidate[i]))/*èˆå¼ƒæœªèƒ½é€šè¿‡çš®è‚¤æµ‹è¯•çš„æ£€æµ‹æ¡†*/
+		if(skin_test_flag && !skin_test(im, candidate[i]))/*ÉáÆúÎ´ÄÜÍ¨¹ıÆ¤·ô²âÊÔµÄ¼ì²â¿ò*/
 		{
 			continue;
 		}
@@ -425,9 +437,9 @@ image run_detection(image im, Model *model, i32 skin_test_flag)
 
 
 /*
-åŠŸèƒ½ï¼šæ‰«æå›¾åƒï¼ˆéè®­ç»ƒæ—¶ä½¿ç”¨ï¼‰
-å¤‡æ³¨ï¼šå¯¹åº”è®ºæ–‡An Analysis of the Viola-Jones Face Detection Algorithmä¸­çš„ç®—æ³•7
-     è¯¥å‡½æ•°åªç”¨äºå¯¹å›¾åƒçš„æ£€æµ‹ï¼Œè®­ç»ƒæ—¶ä¸éœ€è¦ä½¿ç”¨
+¹¦ÄÜ£ºÉ¨ÃèÍ¼Ïñ£¨·ÇÑµÁ·Ê±Ê¹ÓÃ£©
+±¸×¢£º¶ÔÓ¦ÂÛÎÄAn Analysis of the Viola-Jones Face Detection AlgorithmÖĞµÄËã·¨7
+     ¸Ãº¯ÊıÖ»ÓÃÓÚ¶ÔÍ¼ÏñµÄ¼ì²â£¬ÑµÁ·Ê±²»ĞèÒªÊ¹ÓÃ
 */
 void scan_image_for_testing(vector<Sub_wnd> &candidate, Model *model, image im, i32 wnd_size, float scale_size, i32 step_size)
 {
@@ -437,7 +449,7 @@ void scan_image_for_testing(vector<Sub_wnd> &candidate, Model *model, image im, 
 	i32 possibleJ = (w - wnd_size) / step_size + 1;
 	i32 possibleConers = possibleI * possibleJ;
 		
-	#pragma omp parallel for 
+	#pragma omp parallel for num_threads(16) schedule(static)
 	for(ij = 0; ij < possibleConers; ij++)
 	{
 		int i = ij / possibleJ * step_size;
@@ -476,9 +488,9 @@ void scan_image_for_testing(vector<Sub_wnd> &candidate, Model *model, image im, 
 
 
 /*
-åŠŸèƒ½ï¼šæ‰«æå›¾åƒä»¥è·å–æŒ‡å®šå¤§å°çš„å‡é˜³æ€§æ ·æœ¬ç”¨äºè®­ç»ƒ
-å¤‡æ³¨ï¼šå¯¹åº”è®ºæ–‡An Analysis of the Viola-Jones Face Detection Algorithmä¸­çš„ç®—æ³•7ï¼Œ8ï¼Œ9ç»“åˆåˆ°ä¸€èµ·
-	 æ­¤å¤„æ‰«æå›¾åƒæ”¶é›†çš„å­çª—ç”¨äºè®­ç»ƒï¼Œå¯¹å­çª—è¿›è¡Œäº†é™é‡‡æ ·ä½¿å¤§å°æ»¡è¶³è®­ç»ƒè¦æ±‚ã€‚
+¹¦ÄÜ£ºÉ¨ÃèÍ¼ÏñÒÔ»ñÈ¡Ö¸¶¨´óĞ¡µÄ¼ÙÑôĞÔÑù±¾ÓÃÓÚÑµÁ·
+±¸×¢£º¶ÔÓ¦ÂÛÎÄAn Analysis of the Viola-Jones Face Detection AlgorithmÖĞµÄËã·¨7£¬8£¬9½áºÏµ½Ò»Æğ
+	 ´Ë´¦É¨ÃèÍ¼ÏñÊÕ¼¯µÄ×Ó´°ÓÃÓÚÑµÁ·£¬¶Ô×Ó´°½øĞĞÁË½µ²ÉÑùÊ¹´óĞ¡Âú×ãÑµÁ·ÒªÇó¡£
 */
 void scan_image_for_training(vector<Sub_wnd> &candidate, Model *model, image im, i32 wnd_size, float scale_size, i32 step_size)
 {
@@ -488,7 +500,7 @@ void scan_image_for_training(vector<Sub_wnd> &candidate, Model *model, image im,
 	i32 possibleJ = (w - wnd_size) / step_size + 1;
 	i32 possibleConers = possibleI * possibleJ;
 
-	#pragma omp parallel for 
+	#pragma omp parallel for num_threads(16) schedule(static)
 	for(ij = 0; ij < possibleConers; ij++)
 	{
 		int i = ij / possibleJ * step_size;
@@ -515,7 +527,7 @@ void scan_image_for_training(vector<Sub_wnd> &candidate, Model *model, image im,
 		                free_image(integ);
 		                integ = make_intergral_image(cropped_small);
 		                free_image(cropped_small);
-		                if(1 == model_func(model, integ))/*é™é‡‡æ ·åå†æ¬¡æ£€æµ‹ï¼Œè‹¥æ£€æµ‹ä¾ç„¶ä¸ºæ­£åˆ™æ”¶é›†è¯¥æ ·æœ¬*/
+		                if(1 == model_func(model, integ))/*½µ²ÉÑùºóÔÙ´Î¼ì²â£¬Èô¼ì²âÒÀÈ»ÎªÕıÔòÊÕ¼¯¸ÃÑù±¾*/
 		                {
 		                    wnd.integ = integ;
 			                #pragma omp critical
@@ -552,9 +564,9 @@ void scan_image_for_training(vector<Sub_wnd> &candidate, Model *model, image im,
 
 
 /*
-åŠŸèƒ½ï¼šè®­ç»ƒçº§è”æ³¨æ„åŠ›æ¨¡å‹
-å¤‡æ³¨ï¼šå¯¹åº”è®ºæ–‡An Analysis of the Viola-Jones Face Detection Algorithmä¸­çš„ç®—æ³•10
-	 å¯ä»¥æŒç»­è®­ç»ƒ
+¹¦ÄÜ£ºÑµÁ·¼¶Áª×¢ÒâÁ¦Ä£ĞÍ
+±¸×¢£º¶ÔÓ¦ÂÛÎÄAn Analysis of the Viola-Jones Face Detection AlgorithmÖĞµÄËã·¨10
+	 ¿ÉÒÔ³ÖĞøÑµÁ·
 */
 Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data v_pos_data, Data t_neg_data, Data v_neg_data, i32 wnd_size, double fpr_overall, double fpr_perstage, double fnr_perstage)
 {
@@ -563,10 +575,11 @@ Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data 
 	Stage *new_stage = NULL;
 	i32 retrain_flag = 0;
 
-	if(model != NULL)/*ç»§ç»­è®­ç»ƒ*/
-	{
+	if(model != NULL)/*¼ÌĞøÑµÁ·*/
+	{	
+		i32 stage_num = model->stage_num;
 		tail_stage = model->head_stage;
-		while(tail_stage->next_stage != NULL)
+		while(--stage_num > 0)
 		{
 			tail_stage = tail_stage->next_stage;
 		}
@@ -576,36 +589,36 @@ Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data 
 	else
 	{
 		model = (Model*)malloc(sizeof(Model));
+		model->stage_num = 0;
 	}
 	double fpr = 1;
 	double u, s_l, T_l;
-	i32 opt_case = 0;/*ç”¨äºä»£ç é—´è¿›è¡Œè·³è½¬*/
+	i32 opt_case = 0;/*ÓÃÓÚ´úÂë¼ä½øĞĞÌø×ª*/
 	i32 example_num;
-	double fpr_e, fpr_g;/*åˆ†åˆ«å¯¹åº”è®­ç»ƒé›†å’ŒéªŒè¯é›†ä¸Šçš„å‡é˜³æ€§ç‡*/
-	double fnr_e, fnr_g;/*åˆ†åˆ«å¯¹åº”è®­ç»ƒé›†å’ŒéªŒè¯é›†ä¸Šçš„å‡é˜´æ€§ç‡*/
+	double fpr_e, fpr_g;/*·Ö±ğ¶ÔÓ¦ÑµÁ·¼¯ºÍÑéÖ¤¼¯ÉÏµÄ¼ÙÑôĞÔÂÊ*/
+	double fnr_e, fnr_g;/*·Ö±ğ¶ÔÓ¦ÑµÁ·¼¯ºÍÑéÖ¤¼¯ÉÏµÄ¼ÙÒõĞÔÂÊ*/
 	double fpr_r, fnr_r;
 	Train_example *t_neg, *v_neg, *examples;
 	i32 t_pos_num = t_pos_data.im_num;
 	i32 v_pos_num = v_pos_data.im_num;
 	i32 t_neg_num = t_pos_num;
 	i32 v_neg_num = v_pos_num;
-	i32 s_obesrver[2];/*ç”¨äºè®°å½•tweakæ˜¯å¦éœ‡è¡*/
+	i32 s_obesrver[2];/*ÓÃÓÚ¼ÇÂ¼tweakÊÇ·ñÕğµ´*/
 	i32 tweak_counter = 0;
 	s_obesrver[0] = 0; s_obesrver[1] = 0;
 	i32 count;
 	i32 feat_num;
 	i32 i;
 
-	/*è·å–æ­£è®­ç»ƒæ ·æœ¬*/
+	/*»ñÈ¡ÕıÑµÁ·Ñù±¾*/
 	Train_example *t_pos = make_pos_example(t_pos_data);
 	Train_example *v_pos = make_pos_example(v_pos_data);
 
-	if(retrain_flag)/*ç»§ç»­è®­ç»ƒï¼Œéœ€è¦è¯„ä¼°fprå¹¶ä¸”æ›´æ¢è®­ç»ƒä¸­ç”¨åˆ°çš„è´Ÿæ ·æœ¬*/
+	if(retrain_flag)/*¼ÌĞøÑµÁ·£¬ĞèÒªÆÀ¹Àfpr²¢ÇÒ¸ü»»ÑµÁ·ÖĞÓÃµ½µÄ¸ºÑù±¾*/
 	{
-		/*å½“å‰æ¨¡å‹çš„fpr*/
+		/*µ±Ç°Ä£ĞÍµÄfpr*/
 		fpr = model->fpr;
-		printf("initial model: stage_num:%d fpr:%.10lf\n", model->stage_num, fpr);
-		/*æ›´æ¢å½“å‰æ¨¡å‹é¦–æ¬¡ç”¨åˆ°çš„å‡é˜³æ€§æ ·æœ¬*/
+		/*¸ü»»µ±Ç°Ä£ĞÍÊ×´ÎÓÃµ½µÄ¼ÙÑôĞÔÑù±¾*/
 		times("replenish examples beg\n");
 		t_neg = make_neg_example(t_neg_data, 0, t_neg_num, wnd_size, model, fpr, 1.5, 1);
 		v_neg = make_neg_example(v_neg_data, 0, v_neg_num, wnd_size, model, fpr, 1.5, 1);
@@ -615,33 +628,31 @@ Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data 
 	}
 	else
 	{
-		/*æ”¶é›†åˆå§‹çš„è®­ç»ƒå’ŒéªŒè¯æ‰€ç”¨çš„è´Ÿæ ·æœ¬*/
+		/*ÊÕ¼¯³õÊ¼µÄÑµÁ·ºÍÑéÖ¤ËùÓÃµÄ¸ºÑù±¾*/
 		t_neg = make_neg_example(t_neg_data, 1, t_neg_num, wnd_size, NULL, 0, 0, 0);
 		v_neg = make_neg_example(v_neg_data, 1, v_neg_num, wnd_size, NULL, 0, 0, 0);
-		examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);/*æŠŠæ­£è´Ÿæ ·æœ¬åˆåˆ°ä¸€ä¸ªæ•°ç»„ä¸­å»*/
-		example_num = t_pos_num + t_neg_num;/*æ‰€æœ‰æ ·æœ¬*/
+		examples = merge_pos_neg(t_pos, t_pos_num, t_neg, t_neg_num);/*°ÑÕı¸ºÑù±¾ºÏµ½Ò»¸öÊı×éÖĞÈ¥*/
+		example_num = t_pos_num + t_neg_num;/*ËùÓĞÑù±¾*/
 	}
 
-	/*ç”Ÿæˆç‰¹å¾ä¿¡æ¯*/
+	/*Éú³ÉÌØÕ÷ĞÅÏ¢*/
 	Haar_feat *feat_array = make_haar_features(wnd_size, &feat_num);
 	printf("make haar features feat_num:%d\n", feat_num);
 
-	/*åˆ›å»ºå¯ç”¨äºè®­ç»ƒçš„æ ·æœ¬å¹¶è¡Œå¤„ç†å†…å­˜ç©ºé—´*/
-	Feat_info **parallel_examples = make_parallel_examples(t_pos_num + t_neg_num, feat_num);/*è®­ç»ƒä¸­æ­£æ ·æœ¬å’Œè´Ÿæ ·æœ¬æ•°é‡ä¸€è‡´*/	
-
-	model->stage_num = 0;
+	/*´´½¨¿ÉÓÃÓÚÑµÁ·µÄÑù±¾²¢ĞĞ´¦ÀíÄÚ´æ¿Õ¼ä*/
+	Feat_info **parallel_examples = make_parallel_examples(t_pos_num + t_neg_num, feat_num);/*ÑµÁ·ÖĞÕıÑù±¾ºÍ¸ºÑù±¾ÊıÁ¿Ò»ÖÂ*/	
 	
 	times("attentional_cascade beg\n");
-	while(fpr > fpr_overall)/*å‡é˜³æ€§ç‡è¿˜æœªè¾¾æ ‡*/
+	while(fpr > fpr_overall)/*¼ÙÑôĞÔÂÊ»¹Î´´ï±ê*/
 	{
 		switch(opt_case)
 		{
-			case 0:/*è®­ç»ƒåˆå§‹å‚æ•°*/
+			case 0:/*ÑµÁ·³õÊ¼²ÎÊı*/
 				u = 0.01;
 				l++;
 				s_l = 0;
 				T_l = 1;
-			case 1:/*è®­ç»ƒadaboost*/
+			case 1:/*ÑµÁ·adaboost*/
 				new_stage = adaboost(parallel_examples, examples, example_num, t_pos_num, t_neg_num, feat_array, feat_num, T_l);
 				model->stage_num++;
 				if(tail_stage == NULL)
@@ -655,12 +666,12 @@ Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data 
 					tail_stage = new_stage;
 				}
 
-			case 2:/*æµ‹è¯•å¸¦åç§»çš„ç»éªŒï¼ˆè®­ç»ƒé›†ï¼‰å’Œæ³›åŒ–ï¼ˆéªŒè¯é›†ï¼‰å‡é˜³æ€§ç‡å’Œå‡é˜´æ€§ç‡*/
+			case 2:/*²âÊÔ´øÆ«ÒÆµÄ¾­Ñé£¨ÑµÁ·¼¯£©ºÍ·º»¯£¨ÑéÖ¤¼¯£©¼ÙÑôĞÔÂÊºÍ¼ÙÒõĞÔÂÊ*/
 				new_stage->shift = s_l;
-				fpr_e = 1 - test_stage(new_stage, t_neg, t_neg_num);/*è®­ç»ƒé›†çš„å‡é˜³æ€§ç‡*/
-				fpr_g = 1 - test_stage(new_stage, v_neg, v_neg_num);/*éªŒè¯é›†çš„å‡é˜³æ€§ç‡*/
-				fnr_e = 1 - test_stage(new_stage, t_pos, t_pos_num);/*è®­ç»ƒé›†çš„å‡é˜´æ€§ç‡*/
-				fnr_g = 1 - test_stage(new_stage, v_pos, v_pos_num);/*éªŒè¯é›†çš„å‡é˜´æ€§ç‡*/
+				fpr_e = 1 - test_stage(new_stage, t_neg, t_neg_num);/*ÑµÁ·¼¯µÄ¼ÙÑôĞÔÂÊ*/
+				fpr_g = 1 - test_stage(new_stage, v_neg, v_neg_num);/*ÑéÖ¤¼¯µÄ¼ÙÑôĞÔÂÊ*/
+				fnr_e = 1 - test_stage(new_stage, t_pos, t_pos_num);/*ÑµÁ·¼¯µÄ¼ÙÒõĞÔÂÊ*/
+				fnr_g = 1 - test_stage(new_stage, v_pos, v_pos_num);/*ÑéÖ¤¼¯µÄ¼ÙÒõĞÔÂÊ*/
 			default:
 				break;
 		}
@@ -681,7 +692,7 @@ Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data 
 			s_l = s_l + u;
 			s_obesrver[tweak_counter % 2] = 1;
 			tweak_counter++;
-			if(s_obesrver[0] + s_obesrver[1] == 0)/*éå•è°ƒ*/
+			if(s_obesrver[0] + s_obesrver[1] == 0)/*·Çµ¥µ÷*/
 			{
 				u = u * UNIT_DECAY_RATE;
 				s_l = s_l - u;
@@ -696,7 +707,7 @@ Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data 
 			s_l = s_l - u;
 			s_obesrver[tweak_counter % 2] = -1;
 			tweak_counter++;
-			if(s_obesrver[0] + s_obesrver[1] == 0)/*éå•è°ƒ*/
+			if(s_obesrver[0] + s_obesrver[1] == 0)/*·Çµ¥µ÷*/
 			{
 				u = u * UNIT_DECAY_RATE;
 				s_l = s_l + u;
@@ -708,7 +719,7 @@ Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data 
 		}
 		else
 		{
-			if(T_l > MAX_DEPTH(l))/*æ·±åº¦è¾¾åˆ°ä¸Šé™*/
+			if(T_l > MAX_DEPTH(l))/*Éî¶È´ïµ½ÉÏÏŞ*/
 			{
 				s_l = -1;
 				while(1 - fnr_r < 0.99)
@@ -742,9 +753,9 @@ Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data 
 		printf("add one stage\n");
 		printf("stage:%d stump_num:%d shift:%lf unit:%lf\n", l, new_stage->stump_num, s_l, u);
 		printf("current model: fpr:%.10lf\n", fpr);
-		printf("current stage: fnr:%.6lf and fpr:%.6lf\n", fpr_r, fnr_r);
+		printf("current stage: fpr:%.6lf and fnr:%.6lf\n", fpr_r, fnr_r);
 
-		if(l % 1 == 0)/*æ¯ä¸€å±‚ä¿å­˜ä¸€æ¬¡æ¨¡å‹*/
+		if(l % 1 == 0)/*Ã¿Ò»²ã±£´æÒ»´ÎÄ£ĞÍ*/
 		{
 			char buf[100];
 			i32 len = sprintf(buf, "%s/attention_cascade_%d.cfg", save_path, l);
@@ -755,7 +766,7 @@ Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data 
 		}
 	
 		times("replenish examples beg\n");
-		/*é‡æ–°æ”¶é›†è´Ÿæ ·æœ¬çš„è®­ç»ƒé›†å’ŒéªŒè¯é›†*/
+		/*ÖØĞÂÊÕ¼¯¸ºÑù±¾µÄÑµÁ·¼¯ºÍÑéÖ¤¼¯*/
 		for(i = 0; i < t_neg_num; i++)
 		{
 			free_image(t_neg[i].integ);
@@ -775,10 +786,10 @@ Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data 
 	}
 	times("attentional_cascade end\n");
 	
-	/*é‡Šæ”¾å¹¶è¡Œè®­ç»ƒå†…å­˜ç©ºé—´*/
+	/*ÊÍ·Å²¢ĞĞÑµÁ·ÄÚ´æ¿Õ¼ä*/
 	free_parallel_examples(parallel_examples, feat_num);
 	
-	/*é‡Šæ”¾æ ·æœ¬ä¿¡æ¯*/
+	/*ÊÍ·ÅÑù±¾ĞÅÏ¢*/
 	free(t_pos);
 	free(v_pos);
 	free(t_neg);
@@ -790,12 +801,12 @@ Model *attentional_cascade(char *save_path, Model *model, Data t_pos_data, Data 
 
 
 /*
-åŠŸèƒ½ï¼šæ£€æŸ¥è¯¥åƒç´ æ˜¯å¦å±äºçš®è‚¤
-å‚æ•°ï¼šr-çº¢è‰²é€šé“åƒç´ å€¼
-     g-ç»¿è‰²é€šé“åƒç´ å€¼
-     b-è“è‰²é€šé“åƒç´ å€¼
-è¿”å›å€¼ï¼š1-æ˜¯
-       0-å¦
+¹¦ÄÜ£º¼ì²é¸ÃÏñËØÊÇ·ñÊôÓÚÆ¤·ô
+²ÎÊı£ºr-ºìÉ«Í¨µÀÏñËØÖµ
+     g-ÂÌÉ«Í¨µÀÏñËØÖµ
+     b-À¶É«Í¨µÀÏñËØÖµ
+·µ»ØÖµ£º1-ÊÇ
+       0-·ñ
 */
 bool is_skin_pixel(float r, float g, float b)
 {
@@ -805,10 +816,10 @@ bool is_skin_pixel(float r, float g, float b)
 
 
 /*
-åŠŸèƒ½ï¼šäººè„¸è‚¤è‰²æ£€æŸ¥
-è¿”å›å€¼ï¼š1-é€šè¿‡æ£€æŸ¥
-	   0-æœªé€šè¿‡æ£€æŸ¥
-å¤‡æ³¨ï¼šåªèƒ½åœ¨å¤„ç†å½©è‰²å›¾ç‰‡æ—¶å€™ä½¿ç”¨
+¹¦ÄÜ£ºÈËÁ³·ôÉ«¼ì²é
+·µ»ØÖµ£º1-Í¨¹ı¼ì²é
+	   0-Î´Í¨¹ı¼ì²é
+±¸×¢£ºÖ»ÄÜÔÚ´¦Àí²ÊÉ«Í¼Æ¬Ê±ºòÊ¹ÓÃ
 */
 i8 skin_test(image src, Sub_wnd wnd)
 {
@@ -835,8 +846,8 @@ i8 skin_test(image src, Sub_wnd wnd)
 
 
 /*
-åŠŸèƒ½ï¼šè·å–æ¨¡å‹çš„æ£€æµ‹çª—å¤§å°
-å¤‡æ³¨ï¼šæ¨¡å‹è®­ç»ƒæ—¶æ‰€ç”¨åˆ°çš„æ­£æ ·æœ¬å¤§å°æ˜¯å›ºå®šçš„ï¼Œæ­¤å¤„ç›´æ¥è·å–æ¨¡å‹çš„ç¬¬ä¸€ä¸ªå†³ç­–æ¡©ä¸­çš„wnd_size
+¹¦ÄÜ£º»ñÈ¡Ä£ĞÍµÄ¼ì²â´°´óĞ¡
+±¸×¢£ºÄ£ĞÍÑµÁ·Ê±ËùÓÃµ½µÄÕıÑù±¾´óĞ¡ÊÇ¹Ì¶¨µÄ£¬´Ë´¦Ö±½Ó»ñÈ¡Ä£ĞÍµÄµÚÒ»¸ö¾ö²ß×®ÖĞµÄwnd_size
 */
 i32 get_detect_wnd_size(Model *model)
 {
@@ -849,14 +860,14 @@ i32 get_detect_wnd_size(Model *model)
 
 
 /*
-åŠŸèƒ½ï¼šè¿è¡Œæ£€æµ‹
+¹¦ÄÜ£ºÔËĞĞ¼ì²â
 */
 void detect(Model *model, i32 skin_test_flag, char *infile, char *save_path)
 {
 	i32 web_cam = 0;
 	image im;
 	image im_detected;
-	if(0 == strcmp(infile, "webcam"))/*è¾“å…¥å›¾åƒæ¥è‡ªæ‘„åƒå¤´*/
+	if(0 == strcmp(infile, "webcam"))/*ÊäÈëÍ¼ÏñÀ´×ÔÉãÏñÍ·*/
 	{
 		web_cam = 1;
 	}
@@ -881,7 +892,7 @@ void detect(Model *model, i32 skin_test_flag, char *infile, char *save_path)
    			image im = get_image_from_stream(&camera);
 			im_detected = run_detection(im, model, skin_test_flag);
 			i32 key = show_image(im_detected, "webcam", 10);
-			if(27 == key)/*é€€å‡º*/
+			if(27 == key)/*ÍË³ö*/
 			{
 				break;
 			}
@@ -898,7 +909,7 @@ void detect(Model *model, i32 skin_test_flag, char *infile, char *save_path)
 	im_detected = run_detection(im, model, skin_test_flag);
 #endif
 	
-	if(NULL != save_image && web_cam == 0)
+	if(NULL != save_path && web_cam == 0)
 	{
 		save_image(im_detected, save_path);
 	}

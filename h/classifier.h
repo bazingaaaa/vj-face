@@ -6,23 +6,23 @@ typedef struct decision_stump
 {
 	Haar_feat feat;
 	float thresh;
-	float error;/*è€ƒè™‘æƒé‡çš„è¯¯å·®*/
+	float error;/*¿¼ÂÇÈ¨ÖØµÄÎó²î*/
 	float margin;
 	i32 sign;
 
 	float weight;
-	struct decision_stump *next_stump;/*ä¸‹ä¸€ä¸ªå†³ç­–æ¡©*/
+	struct decision_stump *next_stump;/*ÏÂÒ»¸ö¾ö²ß×®*/
 }Stump;
 
 
-/*å¯èƒ½ç”±å¤šä¸ªStumpç»„æˆ*/
+/*¿ÉÄÜÓÉ¶à¸öStump×é³É*/
 typedef struct decision_stage
 {
 	i32 stump_num;
 	float shift;
-	Stump *head_stump;/*ä¸‹ä¸€ä¸ªå†³ç­–æ¡©*/
-	Stump *tail_stump;/*å°¾éƒ¨å†³ç­–æ¡©*/
-	struct decision_stage *next_stage;/*ä¸‹ä¸€ä¸ªé˜¶æ®µ*/
+	Stump *head_stump;/*ÏÂÒ»¸ö¾ö²ß×®*/
+	Stump *tail_stump;/*Î²²¿¾ö²ß×®*/
+	struct decision_stage *next_stage;/*ÏÂÒ»¸ö½×¶Î*/
 }Stage;
 
 

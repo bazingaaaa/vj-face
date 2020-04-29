@@ -1,7 +1,7 @@
+#include "type.h"
 #include "const.h"
-#include "image.h"
+//#include "image.h"
 #include <time.h>
-#include <sys/time.h>
 #include <string.h>
 #include "stdlib.h"
 #include "list.h"
@@ -9,9 +9,33 @@
 #include "feature.h"
 #include "classifier.h"
 #include "model.h"
-#include "data.h"
-#include "proto.h"
+//#include "data.h"
+//#include "proto.h"
+//#include <stddef.h>
 
+#ifdef _WIN64
+#include <windows.h>
+int gettimeofday(struct timeval* tp, void* tzp)
+{
+    time_t clock;
+    struct tm tm;
+    SYSTEMTIME wtm;
+    GetLocalTime(&wtm);
+    tm.tm_year = wtm.wYear - 1900;
+    tm.tm_mon = wtm.wMonth - 1;
+    tm.tm_mday = wtm.wDay;
+    tm.tm_hour = wtm.wHour;
+    tm.tm_min = wtm.wMinute;
+    tm.tm_sec = wtm.wSecond;
+    tm.tm_isdst = -1;
+    clock = mktime(&tm);
+    tp->tv_sec = clock;
+    tp->tv_usec = wtm.wMilliseconds * 1000;
+    return (0);
+}
+#else
+#include <sys/time.h>
+#endif
 
 
 typedef struct{
@@ -22,15 +46,16 @@ typedef struct{
 
 
 void option_insert(List *l, char *key, char *val);
-int read_option(char *s, list *options);
+int read_option(char *s, List *options);
+void strip(char *s);
 
 
 /*
-åŠŸèƒ½ï¼šæ–­è¨€å¤±è´¥
+¹¦ÄÜ£º¶ÏÑÔÊ§°Ü
 */
-void assertion_failure(char *exp, char *file, char *base_file, int line)
+void assertion_failure(char *exp, char *file, int line)
 {
-	printf("assert(%s) failed:file:%s,base_file:%s,ln:%d", exp, file, base_file, line);
+	printf("assert(%s) failed:file:%s,ln:%d", exp, file, line);
 
 	while(1)
 	{
@@ -40,7 +65,7 @@ void assertion_failure(char *exp, char *file, char *base_file, int line)
 
 
 /*
-åŠŸèƒ½ï¼šå¯¹æ•´å½¢èŒƒå›´è¿›è¡Œé™åˆ¶
+¹¦ÄÜ£º¶ÔÕûĞÎ·¶Î§½øĞĞÏŞÖÆ
 */
 int constrain_int(int a, int min, int max)
 {
@@ -51,7 +76,7 @@ int constrain_int(int a, int min, int max)
 
 
 /*
-åŠŸèƒ½ï¼šæ—¶é—´å‡½æ•°
+¹¦ÄÜ£ºÊ±¼äº¯Êı
 */
 void times(const char * which)
 {
@@ -80,7 +105,7 @@ void times(const char * which)
 
 
 /*
-åŠŸèƒ½ï¼šåˆ é™¤å‚æ•°
+¹¦ÄÜ£ºÉ¾³ı²ÎÊı
 */
 void del_arg(int argc, char **argv, int index)
 {
@@ -91,7 +116,7 @@ void del_arg(int argc, char **argv, int index)
 
 
 /*
-åŠŸèƒ½ï¼šæ‰¾åˆ°å¹¶åˆ é™¤å‚æ•°
+¹¦ÄÜ£ºÕÒµ½²¢É¾³ı²ÎÊı
 */
 int find_arg(int argc, char* argv[], char *arg)
 {
@@ -108,7 +133,7 @@ int find_arg(int argc, char* argv[], char *arg)
 
 
 /*
-åŠŸèƒ½ï¼šæ‰¾åˆ°æŒ‡å®šå­—ç¬¦ä¸²åçš„å­—ç¬¦ä¸²å‚æ•°
+¹¦ÄÜ£ºÕÒµ½Ö¸¶¨×Ö·û´®ºóµÄ×Ö·û´®²ÎÊı
 */
 char *find_char_arg(int argc, char **argv, char *arg, char *def)
 {
@@ -127,7 +152,7 @@ char *find_char_arg(int argc, char **argv, char *arg, char *def)
 
 
 /*
-åŠŸèƒ½ï¼šæ‰¾åˆ°æŒ‡å®šå­—ç¬¦ä¸²åçš„æ•´å½¢å‚æ•°
+¹¦ÄÜ£ºÕÒµ½Ö¸¶¨×Ö·û´®ºóµÄÕûĞÎ²ÎÊı
 */
 int find_int_arg(int argc, char **argv, char *arg, int def)
 {
@@ -147,19 +172,19 @@ int find_int_arg(int argc, char **argv, char *arg, int def)
 
 
 /*
-åŠŸèƒ½ï¼šä»æ–‡ä»¶ä¸­è·å–ä¸€è¡Œ
+¹¦ÄÜ£º´ÓÎÄ¼şÖĞ»ñÈ¡Ò»ĞĞ
 */
 char *fgetl(FILE *fp)
 {
     if(feof(fp)) return 0;
-    size_t size = 512;
+    i32 size = 512;
     char *line = (char*)malloc(size*sizeof(char));
     if(!fgets(line, size, fp)){
         free(line);
         return 0;
     }
 
-    size_t curr = strlen(line);
+    i32 curr = strlen(line);
 
     while((line[curr-1] != '\n') && !feof(fp)){
         if(curr == size-1){
@@ -170,7 +195,7 @@ char *fgetl(FILE *fp)
                 exit(0);
             }
         }
-        size_t readsize = size-curr;
+        i32 readsize = size-curr;
         if(readsize > INT_MAX) readsize = INT_MAX-1;
         fgets(&line[curr], readsize, fp);
         curr = strlen(line);
@@ -182,7 +207,7 @@ char *fgetl(FILE *fp)
 
 
 /*
-åŠŸèƒ½ï¼šè¯»å–æ•°æ®é…ç½®æ–‡ä»¶
+¹¦ÄÜ£º¶ÁÈ¡Êı¾İÅäÖÃÎÄ¼ş
 */
 List *read_data_cfg(char *filename)
 {
@@ -194,7 +219,7 @@ List *read_data_cfg(char *filename)
     }
     char *line;
     int nu = 0;
-    list *options = make_list();
+    List *options = make_list();
     while((line=fgetl(file)) != 0){
         ++ nu;
         strip(line);
@@ -218,12 +243,12 @@ List *read_data_cfg(char *filename)
 
 
 /*
-åŠŸèƒ½ï¼šè¯»å–é€‰é¡¹
+¹¦ÄÜ£º¶ÁÈ¡Ñ¡Ïî
 */
-int read_option(char *s, list *options)
+int read_option(char *s, List *options)
 {
-    size_t i;
-    size_t len = strlen(s);
+    i32 i;
+    i32 len = strlen(s);
     char *val = 0;
     for(i = 0; i < len; ++i){
         if(s[i] == '='){
@@ -240,7 +265,7 @@ int read_option(char *s, list *options)
 
 
 /*
-åŠŸèƒ½ï¼šé€‰é¡¹æ’å…¥
+¹¦ÄÜ£ºÑ¡Ïî²åÈë
 */
 void option_insert(List *l, char *key, char *val)
 {
@@ -253,13 +278,13 @@ void option_insert(List *l, char *key, char *val)
 
 
 /*
-åŠŸèƒ½ï¼šå­—ç¬¦ä¸²æŠ½å–
+¹¦ÄÜ£º×Ö·û´®³éÈ¡
 */
 void strip(char *s)
 {
-    size_t i;
-    size_t len = strlen(s);
-    size_t offset = 0;
+    i32 i;
+    i32 len = strlen(s);
+    i32 offset = 0;
     for(i = 0; i < len; ++i){
         char c = s[i];
         if(c==' '||c=='\t'||c=='\n') ++offset;
@@ -270,9 +295,9 @@ void strip(char *s)
 
 
 /*
-åŠŸèƒ½ï¼šé€‰é¡¹å¯»æ‰¾
+¹¦ÄÜ£ºÑ¡ÏîÑ°ÕÒ
 */
-char *option_find(list *l, char *key)
+char *option_find(List *l, char *key)
 {
     node *n = l->front;
     while(n){
@@ -288,7 +313,7 @@ char *option_find(list *l, char *key)
 
 
 /*
-åŠŸèƒ½ï¼šé€‰é¡¹å¯»æ‰¾ï¼Œå­—ç¬¦ä¸²
+¹¦ÄÜ£ºÑ¡ÏîÑ°ÕÒ£¬×Ö·û´®
 */
 char *option_find_str(List *l, char *key, char *def)
 {
@@ -300,7 +325,7 @@ char *option_find_str(List *l, char *key, char *def)
 
 
 /*
-åŠŸèƒ½ï¼šé€‰é¡¹å¯»æ‰¾ï¼Œæ•´å‹
+¹¦ÄÜ£ºÑ¡ÏîÑ°ÕÒ£¬ÕûĞÍ
 */
 int option_find_int(List *l, char *key, int def)
 {
@@ -312,12 +337,12 @@ int option_find_int(List *l, char *key, int def)
 
 
 /*
-åŠŸèƒ½ï¼šé€‰é¡¹å¯»æ‰¾ï¼Œæµ®ç‚¹å‹
+¹¦ÄÜ£ºÑ¡ÏîÑ°ÕÒ£¬¸¡µãĞÍ
 */
-double option_find_float(list *l, char *key, double def)
+double option_find_float(List* l, char* key, double def)
 {
-    char *v = option_find(l, key);
-    if(v) return atof(v);
+    char* v = option_find(l, key);
+    if (v) return atof(v);
     fprintf(stderr, "%s: Using default '%lf'\n", key, def);
     return def;
 }

@@ -5,7 +5,7 @@
 
 
 /*
-åŠŸèƒ½:ç”Ÿæˆåˆ—è¡¨
+¹¦ÄÜ:Éú³ÉÁĞ±í
 */
 List *make_list()
 {
@@ -18,7 +18,7 @@ List *make_list()
 
 
 /*
-åŠŸèƒ½:ä»é“¾è¡¨ä¸­å¼¹å‡ºå…ƒç´ 
+¹¦ÄÜ:´ÓÁ´±íÖĞµ¯³öÔªËØ
 */
 void *list_pop(List *l)
 {
@@ -35,7 +35,7 @@ void *list_pop(List *l)
 
 
 /*
-åŠŸèƒ½:åœ¨é“¾è¡¨å°¾éƒ¨æ’å…¥å…ƒç´ 
+¹¦ÄÜ:ÔÚÁ´±íÎ²²¿²åÈëÔªËØ
 */
 void list_insert(List *l, void *val)
 {
@@ -59,7 +59,7 @@ void list_insert(List *l, void *val)
 
 
 /*
-åŠŸèƒ½:é‡Šæ”¾èŠ‚ç‚¹
+¹¦ÄÜ:ÊÍ·Å½Úµã
 */
 void free_node(node *n)
 {
@@ -74,7 +74,7 @@ void free_node(node *n)
 
 
 /*
-åŠŸèƒ½:é‡Šæ”¾é“¾è¡¨
+¹¦ÄÜ:ÊÍ·ÅÁ´±í
 */
 void free_list(List *l)
 {
@@ -84,7 +84,7 @@ void free_list(List *l)
 
 
 /*
-åŠŸèƒ½ï¼šé‡Šæ”¾èŠ‚ç‚¹å†…å®¹
+¹¦ÄÜ£ºÊÍ·Å½ÚµãÄÚÈİ
 */
 void free_list_contents(List *l)
 {
@@ -98,7 +98,7 @@ void free_list_contents(List *l)
 
 
 /*
-åŠŸèƒ½ï¼šé“¾è¡¨è½¬ä¸ºæ•°ç»„
+¹¦ÄÜ£ºÁ´±í×ªÎªÊı×é
 */
 void **list_to_array(List *l)
 {

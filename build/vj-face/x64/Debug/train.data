@@ -1,0 +1,9 @@
+window_size = 24  
+train_positive = C:\\Users\\Administrator\\Desktop\\VJ-face\\train_pos.list
+train_negative = C:\\Users\\Administrator\\Desktop\\VJ-face\\train_neg.list
+validation_positive = C:\\Users\\Administrator\\Desktop\\VJ-face\\vali_pos.list
+validation_negative =C:\\Users\\Administrator\\Desktop\\VJ-face\\vali_neg.list
+backup = C:\\Users\\Administrator\\Desktop\\VJ-face\\backup
+fnr_perstage = 0.005 
+fpr_perstage = 0.5 
+fpr_overall = 0.0000001
