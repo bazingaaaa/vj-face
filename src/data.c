@@ -267,10 +267,3 @@ Train_example *collect_false_positives(Data data, Model *model, i32 example_num,
 
     return examples;
 } 
-
-
-/*
-¹¦ÄÜ£º
-*/
-
-

@@ -28,8 +28,7 @@ Viola jones face detection implementation
 
 示例
 =====
-
-此处有图。
+![daddrio](./examples/daddrio.png)
 
 
 
